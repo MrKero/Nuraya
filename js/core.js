@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.5.1', date: '2026-11-11' };
+const APP = { name: 'Nuraya', version: '1.6.0', date: '2026-11-11' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
@@ -13,6 +13,7 @@ const DEFAULTS = {
   quran: { last: null, bookmarks: [], showTr: true, showDe: true, arSize: 30, reciter: 'alafasy', kbps: 128, speed: 1, follow: true, theme: 'app', bism: true,
     stopAfter: 'surah', repeat: 1, repeatSurah: false, scrollSpeed: 24 },
   zakat: { cur: '€', basis: 'gold85', goldPrice: '', silverPrice: '', vals: { cash: '', goldG: '', silverG: '', invest: '', receivables: '', trade: '', realestate: '', rentSaved: '', other: '', debts: '' }, agri: { kg: '', water: 'rain' }, live: { camel: '', cow: '', sheep: '' } },
+  seenAudioHelp: false,
   layout: {}, hijriAdj: 0, kandil: true, weekStart: 1, autoUpdate: true,
 };
 let S;
@@ -253,6 +254,7 @@ function setTab(tab) {
   $$('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   $$('.page').forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
   renderPage(tab); scrollTo({ top: 0 });
+  if (tab === 'quran' && !S.seenAudioHelp) setTimeout(() => openAudioHelp(), 350);
 }
 function greeting() {
   const h = new Date().getHours();

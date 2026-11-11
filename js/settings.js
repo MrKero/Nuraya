@@ -83,7 +83,7 @@ function settingsHtml() {
     <div class="set-row"><span class="grow"><b>${t('reciter')}</b><span>Mishary Rashid al-Afasy</span></span></div>
     <div class="set-row"><span class="grow"><b>${t('dlAudio')}</b><span id="audStat">${t('checking')}</span></span><button class="btn sm" data-act="audList">${t('manage')}</button></div>
     <div class="set-row"><span class="grow"><b>${t('importAudio')}</b><span>${t('importAudioSub')}</span></span><label class="btn sm">${icon('upload')}<input type="file" id="audFile" accept=".mp3,.zip,audio/mpeg,application/zip" multiple hidden></label></div>
-    <details class="help"><summary>${t('importHow')}</summary><div>${t('importHowT')}</div></details>
+    <button class="set-row" style="width:100%" data-act="audHelp">${icon('info')}<span class="grow" style="text-align:start"><b>${t('importHow')}</b><span>000_versebyverse.zip · ~1,7 GB</span></span>${icon('chev')}</button>
     <div class="set-row"><span class="grow"><b>${t('sourcesTitle')}</b><span>${t('sourcesQuran')}</span></span></div>
   </div></div>
 
@@ -159,6 +159,7 @@ function bindSettings(b) {
     if (act === 'check') checkUpdate();
     if (act === 'install') applyUpdate();
     if (act === 'audList') openAudioManager();
+    if (act === 'audHelp') openAudioHelp();
     if (act === 'export') exportBackup();
     if (act === 'wipe') {
       if (a.dataset.armed) { localStorage.removeItem('nur_state'); try { await deleteAllAudio(); } catch (x) {} location.reload(); }

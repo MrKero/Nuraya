@@ -400,3 +400,33 @@ Object.assign(I18N.ar, {
 });
 Object.assign(I18N.de, { zkSheepN: '{n}× Schaf oder Ziege', zkBintLabun: '{n}× zweijährige Kamelstute (Bint Labûn)', zkHiqqa: '{n}× dreijährige Kamelstute (Hiqqa)', zkTabi: '{n}× einjähriges Kalb (Tabî‘)', zkMusinna: '{n}× zweijähriges Rind (Musinna)' });
 Object.assign(I18N.de, { ic_dua: 'Dua' }); Object.assign(I18N.tr, { ic_dua: 'Dua' }); Object.assign(I18N.ar, { ic_dua: 'دعاء' });
+/* v1.6: Audio-Anleitung */
+Object.assign(I18N.de, {
+  importHow: 'Anleitung: Koran-Audio importieren', audHelpTitle: 'Koran-Audio offline nutzen',
+  audHelpIntro: 'Der Koran-Text ist schon komplett in der App. Für den Vortrag (Mishary Alafasy) kannst du die Audiodateien einmalig importieren – danach läuft alles offline, und die Restzeiten stimmen auf die Sekunde.',
+  audHelpDone: '{n} Audiodateien sind bereits importiert – du bist fertig.',
+  audStep1: 'ZIP-Datei herunterladen', audStep1T: '„000_versebyverse.zip“ von everyayah.com (ca. 1,7 GB, nur Audio). Am besten direkt auf dem iPhone im WLAN – Safari speichert sie unter Dateien → Downloads. Die Dateien „000_images.zip“ und „000_allfiles.zip“ brauchst du nicht.',
+  audStep2: 'Liegt die Datei auf dem PC?', audStep2T: 'Dann kopiere sie in iCloud Drive (iCloud für Windows oder icloud.com) – oder per Kabel über die App „Apple Geräte“ in die Dateien-App. Auf dem iPhone hast du sie dann in der Dateien-App.',
+  audStep3: 'In Nuraya importieren', audStep3T: 'Tippe auf den Knopf und wähle die ZIP-Datei. Lass die App geöffnet und das Display an, bis „… importiert“ erscheint (einige Minuten).', audStep3Btn: 'ZIP-Datei wählen',
+  audStep4: 'Aufräumen', audStep4T: 'Danach kannst du die ZIP-Datei in der Dateien-App löschen – Nuraya hat eine eigene Kopie. So sparst du 1,7 GB.',
+  audHelpNote: 'Tipp: Für den Import brauchst du kurzzeitig etwa 3,5 GB freien Speicher. Bricht er ab, starte ihn einfach neu – bereits importierte Verse werden übersprungen. Diese Anleitung findest du jederzeit unter Einstellungen → Koran & Audio.',
+  audHelpLater: 'Später',
+});
+Object.assign(I18N.tr, {
+  importHow: 'Kılavuz: Kur\'an sesini içe aktar', audHelpTitle: 'Kur\'an sesini çevrimdışı kullan',
+  audHelpIntro: 'Kur\'an metni zaten uygulamada. Tilavet (Mişari Afasi) için ses dosyalarını bir kez içe aktarabilirsin – sonra her şey çevrimdışı çalışır.',
+  audHelpDone: '{n} ses dosyası zaten içe aktarıldı – hazırsın.',
+  audStep1: 'ZIP dosyasını indir', audStep1T: 'everyayah.com\'dan „000_versebyverse.zip“ (yaklaşık 1,7 GB, sadece ses). En iyisi iPhone\'da Wi-Fi ile – Safari Dosyalar → İndirilenler\'e kaydeder.',
+  audStep2: 'Dosya bilgisayarda mı?', audStep2T: 'iCloud Drive\'a kopyala veya kabloyla „Apple Aygıtları“ uygulaması üzerinden Dosyalar\'a aktar.',
+  audStep3: 'Nuraya\'ya aktar', audStep3T: 'Düğmeye dokun ve ZIP\'i seç. „… içe aktarıldı“ görünene kadar uygulamayı açık tut.', audStep3Btn: 'ZIP dosyasını seç',
+  audStep4: 'Temizle', audStep4T: 'Sonra ZIP dosyasını Dosyalar\'dan silebilirsin – Nuraya kendi kopyasını tutar.',
+  audHelpNote: 'İpucu: İçe aktarma için geçici olarak yaklaşık 3,5 GB boş alan gerekir. Bu kılavuz Ayarlar → Kur\'an & ses altında.',
+  audHelpLater: 'Sonra',
+});
+Object.assign(I18N.ar, {
+  importHow: 'دليل: استيراد صوت القرآن', audHelpTitle: 'صوت القرآن دون اتصال',
+  audHelpIntro: 'نص القرآن موجود في التطبيق. للتلاوة (مشاري العفاسي) استورد الملفات الصوتية مرة واحدة.', audHelpDone: 'تم استيراد {n} ملف – جاهز.',
+  audStep1: 'تنزيل ملف ZIP', audStep1T: '„000_versebyverse.zip“ من everyayah.com (نحو ١٫٧ غيغابايت).', audStep2: 'الملف على الحاسوب؟', audStep2T: 'انسخه إلى iCloud Drive أو إلى تطبيق الملفات.',
+  audStep3: 'الاستيراد إلى نورايا', audStep3T: 'اختر ملف ZIP وأبقِ التطبيق مفتوحًا حتى ينتهي.', audStep3Btn: 'اختر ملف ZIP',
+  audStep4: 'التنظيف', audStep4T: 'بعدها يمكنك حذف ملف ZIP.', audHelpNote: 'تحتاج مؤقتًا إلى نحو ٣٫٥ غيغابايت من المساحة.', audHelpLater: 'لاحقًا',
+});

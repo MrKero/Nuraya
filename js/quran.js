@@ -422,4 +422,29 @@ async function importAudio(files, report) {
   IMPORTING = false;
   return n;
 }
+/* Anleitung: Audio von everyayah importieren (erscheint beim ersten Öffnen des Reiters Koran) */
+const AUDIO_ZIP_URL = 'https://everyayah.com/data/Alafasy_128kbps/000_versebyverse.zip';
+async function openAudioHelp() {
+  const keys = (await allKeys()).filter(k => k.startsWith(S.quran.reciter + '/'));
+  const done = keys.length >= 6000;
+  const sh = openSheet(t('audHelpTitle'), `
+    <div class="card" style="margin-bottom:12px">${done ? `<b style="color:var(--accent)">✓ ${t('audHelpDone', { n: fmtNum(keys.length) })}</b>` : `<span class="muted small">${t('audHelpIntro')}</span>`}</div>
+    <ol class="steps">
+      <li><b>${t('audStep1')}</b><span>${t('audStep1T')}</span><a class="btn sm" href="${AUDIO_ZIP_URL}" target="_blank" rel="noopener noreferrer" style="margin-top:8px;text-decoration:none;color:var(--fg)">${icon('download')} 000_versebyverse.zip</a></li>
+      <li><b>${t('audStep2')}</b><span>${t('audStep2T')}</span></li>
+      <li><b>${t('audStep3')}</b><span>${t('audStep3T')}</span>
+        <label class="btn pri sm" style="margin-top:8px">${icon('upload')} ${t('audStep3Btn')}<input type="file" id="ahFile" accept=".zip,.mp3,application/zip,audio/mpeg" multiple hidden></label>
+        <span id="ahStat" class="small" style="display:block;margin-top:6px;color:var(--accent)"></span></li>
+      <li><b>${t('audStep4')}</b><span>${t('audStep4T')}</span></li>
+    </ol>
+    <p class="tiny" style="margin:6px 4px 14px">${t('audHelpNote')}</p>
+    <button class="btn full" data-ah-close>${t('audHelpLater')}</button>`, { onClose: () => { S.seenAudioHelp = true; save(); } });
+  $('[data-ah-close]', sh.body).onclick = sh.close;
+  $('#ahFile', sh.body).onchange = async e => {
+    const f = [...e.target.files]; if (!f.length) return;
+    const st = $('#ahStat', sh.body); st.textContent = t('importing', { n: 0 });
+    await importAudio(f, m => { st.textContent = m; });
+    refreshSettings && refreshSettings();
+  };
+}
 loadMeta().then(() => { renderPage('quran'); renderPage('start'); });

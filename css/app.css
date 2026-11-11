@@ -35,9 +35,9 @@ svg{display:block}
 .hidden{display:none!important}
 
 /* ---------- Kopfzeile ---------- */
-#top{position:fixed;top:0;left:0;right:0;z-index:40;padding:calc(var(--sat) + 10px) 18px 12px;display:flex;align-items:center;gap:12px;
-  background:linear-gradient(to bottom,var(--bg1) 60%,transparent)}
-html[data-theme="babyblau"] #top,html[data-theme="weiss"] #top{background:linear-gradient(to bottom,var(--bg1) 60%,rgba(255,255,255,0))}
+#top{position:fixed;top:0;left:0;right:0;z-index:40;padding:calc(var(--sat) + 20px) 18px 12px;display:flex;align-items:center;gap:12px;
+  background:linear-gradient(to bottom,var(--bg1) 75%,transparent)}
+html[data-theme="babyblau"] #top,html[data-theme="weiss"] #top{background:linear-gradient(to bottom,var(--bg1) 75%,rgba(255,255,255,0))}
 #top .logo{width:42px;height:42px;border-radius:13px;flex:none;box-shadow:var(--shadow)}
 #top .tt{flex:1;min-width:0}
 #top h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.05}
@@ -47,7 +47,7 @@ html[data-theme="babyblau"] #top,html[data-theme="weiss"] #top{background:linear
 .rbtn.on{background:var(--accent);color:var(--onaccent);border-color:transparent}
 
 /* ---------- Seiten ---------- */
-main{padding:calc(var(--sat) + 78px) 16px calc(var(--tabh) + var(--sab) + 40px)}
+main{padding:calc(var(--sat) + 90px) 16px calc(var(--tabh) + var(--sab) + 40px)}
 .page{display:none;animation:fade .25s ease}
 .page.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -129,9 +129,10 @@ html[dir="rtl"] .view{transform:translateX(-100%)}
 .capsule button{width:48px;height:44px;display:grid;place-items:center}
 
 /* ---------- Toast ---------- */
-#toast{position:fixed;left:50%;top:calc(var(--sat) + 14px);transform:translate(-50%,-140%);z-index:100;background:var(--fg);color:var(--bg1);padding:11px 18px;border-radius:999px;
+#toast{position:fixed;left:50%;top:calc(var(--sat) + 14px);transform:translate(-50%,calc(-100% - var(--sat) - 40px));opacity:0;visibility:hidden;pointer-events:none;z-index:100;background:var(--fg);color:var(--bg1);padding:11px 18px;border-radius:999px;
   font-weight:650;font-size:14.5px;transition:transform .3s;max-width:90vw;text-align:center;box-shadow:var(--shadow)}
-#toast.show{transform:translate(-50%,0)}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .3s,opacity .2s}
+#toast{transition:transform .3s,opacity .2s,visibility 0s .3s}
 
 /* ---------- Gebet ---------- */
 .dstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;margin:0 -4px}
@@ -406,3 +407,10 @@ details.help div{padding:0 14px 14px;color:var(--fg2);font-size:14.5px;line-heig
 .aypill b{padding:4px 10px;border-radius:999px;background:var(--accent);color:var(--onaccent);font-size:13px}
 .reader.rt .aypill b{background:var(--rfg);color:var(--rbg)}
 html[dir="rtl"] svg.dirx{transform:scaleX(-1)}
+.steps{margin:0;padding:0 0 0 2px;list-style:none;counter-reset:st}
+.steps li{position:relative;padding:0 0 16px 44px;counter-increment:st;display:flex;flex-direction:column;align-items:flex-start}
+.steps li::before{content:counter(st);position:absolute;left:0;top:-2px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--onaccent);display:grid;place-items:center;font-weight:800;font-size:15px}
+.steps li b{font-size:16px;margin-bottom:3px}
+.steps li span{color:var(--fg2);font-size:14px;line-height:1.45}
+html[dir="rtl"] .steps li{padding:0 44px 16px 0}
+html[dir="rtl"] .steps li::before{left:auto;right:0}
