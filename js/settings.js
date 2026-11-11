@@ -39,13 +39,13 @@ function settingsHtml() {
   <div class="set-sec"><h4>${t('sLang')}</h4><div class="set-box"><div class="flags">${[['de', 'Deutsch'], ['tr', 'Türkçe'], ['ar', 'العربية']].map(([k, n]) => `<button data-lang="${k}" class="${S.lang === k ? 'on' : ''}">${FLAGS[k]}${n}</button>`).join('')}</div></div></div>
 
   <div class="set-sec"><h4>${t('sDesign')}</h4><div class="set-box">
-    <div class="set-row" style="border:0;padding-bottom:0"><span class="grow"><b>${t('background')}</b></span></div>
+    <div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('background')}</b></span></div>
     <div class="swatches">${Object.entries(THEMES).map(([k, [a, b]]) => `<button data-theme="${k}" class="${S.theme === k ? 'on' : ''}"><i style="background:linear-gradient(160deg,${a},${b})${k === 'oled' ? ';border-color:#333' : ''}"></i>${t('th_' + k)}</button>`).join('')}</div>
-    <div class="set-row" style="border-top:1px solid var(--line);padding-bottom:0"><span class="grow"><b>${t('appIcon')}</b><span>${t('appIconSub')}</span></span></div>
+    <div class="set-row set-head"><span class="grow"><b>${t('appIcon')}</b><span>${t('appIconSub')}</span></span></div>
     <div class="swatches">${APP_ICONS.map(k => `<button data-icon="${k}" class="${S.appIcon === k ? 'on' : ''}"><i style="background:url(icons/alt/${k}-180.png) center/cover"></i>${t('ic_' + k)}</button>`).join('')}</div>
-    <div class="set-row" style="border-top:1px solid var(--line);padding-bottom:0"><span class="grow"><b>${t('beadDesign')}</b></span></div>
+    <div class="set-row set-head"><span class="grow"><b>${t('beadDesign')}</b></span></div>
     <div class="design-row" style="padding:10px 12px">${Object.keys(BEADS).map(d => `<button data-bead="${d}" class="${S.beads === d ? 'on' : ''}"><img src="${beadIcon(d)}" style="width:100%;height:100%"></button>`).join('')}</div>
-    <div class="set-row" style="border-top:1px solid var(--line);padding-bottom:0"><span class="grow"><b>${t('compassDesign')}</b></span></div>
+    <div class="set-row set-head"><span class="grow"><b>${t('compassDesign')}</b></span></div>
     <div class="design-row" style="padding:10px 12px">${COMPASS_DESIGNS.map(d => `<button data-cd="${d}" class="${S.compass === d ? 'on' : ''}">${compassSvg(d, 62)}</button>`).join('')}</div>
     <div class="set-row" style="border-top:1px solid var(--line)"><span class="grow"><b>${t('tasbihBg')}</b></span><select data-sel="tasbihBg"><option value="black" ${S.tasbihBg === 'black' ? 'selected' : ''}>${t('black')}</option><option value="theme" ${S.tasbihBg === 'theme' ? 'selected' : ''}>${t('appDesign')}</option></select></div>
   </div></div>
@@ -74,7 +74,7 @@ function settingsHtml() {
   </div></div>
 
   <div class="set-sec"><h4>${t('sQuran')}</h4><div class="set-box">
-    <div class="set-row"><span class="grow"><b>${t('readTheme')}</b></span></div>
+    <div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('readTheme')}</b></span></div>
     <div style="padding:0 12px 12px"><div class="seg">${['app', 'white', 'black', 'paper'].map(k => `<button data-srt="${k}" class="${(S.quran.theme || 'app') === k ? 'on' : ''}">${t('rt_' + k)}</button>`).join('')}</div></div>
     ${selRowS('stopAfter', t('stopAfter'), [['ayah', t('stopAyah')], ['surah', t('stopSurah')], ['juz', t('stopJuz')], ['never', t('stopNever')]])}
     ${selRowS('repeat', t('repeatAyah'), [[1, t('rep1')], [2, '2×'], [3, '3×'], [5, '5×'], [10, '10×'], [0, '∞']])}

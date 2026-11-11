@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.6.0', date: '2026-11-11' };
+const APP = { name: 'Nuraya', version: '1.6.2', date: '2026-11-11' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
@@ -303,13 +303,13 @@ function boot() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderPage('start'); setTimeout(remindMissed, 500); } });
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 }
-let lastMinute = -1, lastDay = todayKey();
+let lastMinute = -1, lastDay = null;
 function tick() {
   const now = new Date();
   $$('[data-countdown]').forEach(el => { el.textContent = fmtDur(+el.dataset.countdown - now); });
   if (now.getMinutes() !== lastMinute) {
     lastMinute = now.getMinutes();
-    if (todayKey() !== lastDay) { lastDay = todayKey(); prayerDay = lastDay; }
+    const pd = prayerDayKey(); if (pd !== lastDay) { if (lastDay) prayerDay = pd; lastDay = pd; }
     if (!EDIT && !document.body.classList.contains('in-view')) { renderPage('start'); if (TAB === 'prayer') renderPage('prayer'); }
     renderTop();
   }

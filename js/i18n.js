@@ -430,3 +430,6 @@ Object.assign(I18N.ar, {
   audStep3: 'الاستيراد إلى نورايا', audStep3T: 'اختر ملف ZIP وأبقِ التطبيق مفتوحًا حتى ينتهي.', audStep3Btn: 'اختر ملف ZIP',
   audStep4: 'التنظيف', audStep4T: 'بعدها يمكنك حذف ملف ZIP.', audHelpNote: 'تحتاج مؤقتًا إلى نحو ٣٫٥ غيغابايت من المساحة.', audHelpLater: 'لاحقًا',
 });
+Object.assign(I18N.de, { prayerDayPrev: 'Gebetstag {d} – Yatsı läuft bis Sabah' });
+Object.assign(I18N.tr, { prayerDayPrev: '{d} günü – yatsı vakti sabaha kadar' });
+Object.assign(I18N.ar, { prayerDayPrev: 'يوم {d} – العشاء حتى الفجر' });

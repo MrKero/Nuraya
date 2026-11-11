@@ -217,7 +217,7 @@ const selRow = (k, label, opts) => `<div class="set-row"><span class="grow"><b>$
 function readerOptions() {
   const sw = (k, label) => `<div class="set-row"><span class="grow"><b>${label}</b></span><label class="switch"><input type="checkbox" data-o="${k}" ${S.quran[k] ? 'checked' : ''}><i></i></label></div>`;
   const sh = openSheet(t('display'), `<div class="set-sec"><div class="set-box">
-      <div class="set-row"><span class="grow"><b>${t('readTheme')}</b></span></div>
+      <div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('readTheme')}</b></span></div>
       <div style="padding:0 12px 12px"><div class="seg">${['app', 'white', 'black', 'paper'].map(k => `<button data-rt="${k}" class="${(S.quran.theme || 'app') === k ? 'on' : ''}">${t('rt_' + k)}</button>`).join('')}</div></div>
       ${sw('showTr', t('showPron'))}${S.lang !== 'ar' ? sw('showDe', t('showTransl')) : ''}
       <div class="set-row"><span class="grow"><b>${t('arSize')}</b></span><div class="adj"><button data-fs="-2">−</button><b id="fsV">${S.quran.arSize}</b><button data-fs="2">+</button></div></div></div></div>

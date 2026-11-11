@@ -414,3 +414,6 @@ html[dir="rtl"] svg.dirx{transform:scaleX(-1)}
 .steps li span{color:var(--fg2);font-size:14px;line-height:1.45}
 html[dir="rtl"] .steps li{padding:0 44px 16px 0}
 html[dir="rtl"] .steps li::before{left:auto;right:0}
+.set-row.set-head{border-bottom:0;border-top:1px solid var(--line);padding-bottom:10px}
+.set-head+.swatches,.set-head+.design-row,.set-head+div{padding-top:6px!important}
+.set-head+.swatches+.set-row,.set-head+.design-row+.set-row,.set-head+div+.set-row{border-top:1px solid var(--line)}

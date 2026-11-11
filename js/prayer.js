@@ -87,6 +87,8 @@ function prayerState(now = new Date()) {
   if (!next) { next = 'fajr'; nextAt = N.fajr; }
   return { cur, curStart, curEnd, curDay, next, nextAt, T };
 }
+/* Aktueller Gebetstag: vor Sabah gehört die Nacht noch zum Vortag */
+function prayerDayKey(now = new Date()) { const st = prayerState(now); return st.cur === 'isha' && st.curDay !== keyOf(now) ? st.curDay : keyOf(now); }
 /* Ende eines Gebetszeitraums (für Kaza-Erkennung) */
 function prayerEnd(key, k) {
   const T = getTimes(key);
@@ -184,10 +186,11 @@ function ringSvg(frac, size = 42, stroke = 4, kaza = 0) {
 function dayCounts(key) { let ok = 0, kz = 0; FARD.forEach(k => { const v = pstat(key, k); if (v === 1) ok++; if (v === 2) kz++; }); return { ok, kz }; }
 
 /* ---------------- Abschnitte im Reiter „Gebet“ ---------------- */
-let prayerDay = todayKey(), pView = 'day', monthOff = 0;
+let prayerDay = null, pView = 'day', monthOff = 0;
 registerSection('prayer', {
   id: 'times', title: () => t('secTimes'),
   render() {
+    if (!prayerDay) prayerDay = prayerDayKey();
     const now = new Date(), tk = todayKey(), sel = fromKey(prayerDay);
     const hd = hijriParts(sel);
     let strip = '';
@@ -319,9 +322,11 @@ function prayerNowCard() {
        <div style="text-align:end"><div class="muted small">${t('endsIn')}</div><div style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" data-countdown="${+st.curEnd}">${fmtDur(st.curEnd - now)}</div></div></div>`
     : `<div class="row"><div class="grow"><div class="muted small">${t('nextPrayer')}</div><div style="font-size:26px;font-weight:800;margin-top:2px">${pname(st.next)} ${PEMOJI[st.next]}</div></div>
        <div style="text-align:end"><div class="muted small">${t('startsIn')}</div><div style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" data-countdown="${+st.nextAt}">${fmtDur(st.nextAt - now)}</div></div></div>`;
-  const mini = FARD.map(k => `<div style="flex:1;text-align:center">${chkHtml(st.cur === 'isha' && st.curDay !== tk && k === 'isha' ? st.curDay : tk, k, (st.cur === 'isha' && st.curDay !== tk && k === 'isha') ? false : T[k] > now)}
-      <div class="tiny" style="margin-top:4px;color:${st.cur === k ? 'var(--fg)' : ''}">${pname(k)}</div><div class="tiny">${fmtTime(T[k], T.tz)}</div></div>`).join('');
-  return `<div class="card">${head}<div class="row" style="margin-top:16px;gap:4px">${mini}</div></div>`;
+  // Ein Gebetstag reicht von Sabah bis zum nächsten Sabah: nach Mitternacht gehört Yatsı noch zum Vortag
+  const dk = prayerDayKey(now), D = getTimes(dk), prev = dk !== tk;
+  const mini = FARD.map(k => `<div style="flex:1;text-align:center">${chkHtml(dk, k, D[k] > now)}
+      <div class="tiny" style="margin-top:4px;color:${st.cur === k ? 'var(--fg)' : ''}">${pname(k)}</div><div class="tiny">${fmtTime(D[k], D.tz)}</div></div>`).join('');
+  return `<div class="card">${head}${prev ? `<div class="tiny" style="margin-top:12px">${t('prayerDayPrev', { d: fmtDate(fromKey(dk), { weekday: 'long', day: 'numeric', month: 'short' }) })}</div>` : ''}<div class="row" style="margin-top:${prev ? 8 : 16}px;gap:4px">${mini}</div></div>`;
 }
 
 /* ---------------- Standort, gespeicherte Orte, Reisen ---------------- */
