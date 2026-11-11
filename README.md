@@ -1,6 +1,6 @@
 # Nuraya – Islam-App
 
-Persönliche, datenschutzfreundliche Islam-App (Web-App fürs iPhone), angelehnt an Muslim Pro.
+Persönliche, datenschutzfreundliche Islam-App (Web-App fürs iPhone).
 
 **Mit ❤️ gemacht von Kerem**
 
