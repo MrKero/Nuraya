@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="gruen">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#002b27">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nuraya">
+<meta name="format-detection" content="telephone=no">
+<meta name="referrer" content="no-referrer">
+<title>Nuraya</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header id="top">
+  <img class="logo" src="icons/icon-192.png" alt="">
+  <div class="tt"><h1>Nur<span>aya</span></h1><div class="greet" id="greet"></div></div>
+  <button class="rbtn" id="editBtn" aria-label="Bearbeiten"></button>
+  <button class="rbtn" id="setBtn" aria-label="Einstellungen"></button>
+</header>
+<main>
+  <section class="page" data-tab="start"></section>
+  <section class="page" data-tab="prayer"></section>
+  <section class="page" data-tab="quran"></section>
+  <section class="page" data-tab="calendar"></section>
+</main>
+<nav id="tabbar"></nav>
+<button id="totop" aria-label="Nach oben"></button>
+<div id="toast"></div>
+<label id="haptLbl"><input type="checkbox" switch id="hapt"></label>
+
+<script src="lib/adhan.min.js"></script>
+<script src="lib/fflate.min.js"></script>
+<script src="lib/tz-lookup.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/cities.js"></script>
+<script src="js/core.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/prayer.js"></script>
+<script src="js/tasbih.js"></script>
+<script src="js/quran.js"></script>
+<script src="js/names.js"></script>
+<script src="js/zakat.js"></script>
+<script src="js/settings.js"></script>
+<script>boot();</script>
+</body>
+</html>
