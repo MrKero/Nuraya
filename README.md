@@ -2,6 +2,10 @@
 
 Persönliche, datenschutzfreundliche Islam-App (Web-App fürs iPhone).
 
+🌐 **App öffnen:** [mrkero.github.io/Nuraya](https://mrkero.github.io/Nuraya/)
+
+Auf dem iPhone in Safari öffnen → Teilen → „Zum Home-Bildschirm“.
+
 **Mit ❤️ gemacht von Kerem**
 
 ## Funktionen
