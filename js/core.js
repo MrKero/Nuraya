@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.8.1', date: '2026-11-12' };
+const APP = { name: 'Nuraya', version: '1.8.2', date: '2026-11-12' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {

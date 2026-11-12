@@ -235,11 +235,20 @@ function startScroll() {
   toast(t('autoScrollOn'));
 }
 function stopScroll() { if (!SC) return; cancelAnimationFrame(SC.raf); SC.off(); SC = null; if (R) $('#aScroll', R.el).classList.add('hidden'); }
+/* Sure fertig (gehört oder bis zum Ende gelesen) → „Fortsetzen“ springt zur nächsten Sure */
+function markSurahDone(s) {
+  if (s >= 114) return;
+  S.quran.last = { s: s + 1, a: 1 }; save();
+  if (R && R.s === s) R.done = s;
+}
 function markVisible() {
   if (!R) return;
   const body = $('#rBody', R.el), top = body.getBoundingClientRect().top + 40;
   const vis = $$('.ay', body).find(x => x.getBoundingClientRect().bottom > top);
-  if (vis) { R.a = +vis.dataset.a; S.quran.last = { s: R.s, a: R.a }; save(); updProg(); if (!AU.playing) $('#plT', R.el).textContent = `${sName(R.s)}, ${t('ayah')} ${R.a}`; }
+  const atEnd = body.scrollTop > 0 && body.scrollTop + body.clientHeight >= body.scrollHeight - 30;
+  if (atEnd) { if (vis) R.a = +vis.dataset.a; markSurahDone(R.s); updProg(); return; }
+  if (vis && R.done === R.s && +vis.dataset.a >= sMeta(R.s)[5] - 1) { R.a = +vis.dataset.a; return; }
+  if (vis) { R.done = 0; R.a = +vis.dataset.a; S.quran.last = { s: R.s, a: R.a }; save(); updProg(); if (!AU.playing) $('#plT', R.el).textContent = `${sName(R.s)}, ${t('ayah')} ${R.a}`; }
 }
 function ayahAction(act, n) {
   if (act === 'bm') { toggleBookmark(R.s, n); const b = $(`#ay${n} [data-ay="bm"]`, R.el); b.classList.toggle('on', isBm(R.s, n)); b.innerHTML = icon(isBm(R.s, n) ? 'bookmarkf' : 'bookmark'); }
@@ -364,6 +373,7 @@ AU.el.addEventListener('ended', async () => {
   if (rep === 0 || AU.rep + 1 < rep) { AU.rep++; return playFrom(AU.s, AU.a, false); }
   AU.rep = 0;
   const stop = () => { AU.playing = false; uiAudio(); };
+  if (AU.a >= sMeta(AU.s)[5] && !S.quran.repeatSurah) markSurahDone(AU.s);
   if (S.quran.stopAfter === 'ayah') return stop();
   const cnt = sMeta(AU.s)[5];
   if (AU.a < cnt) {
