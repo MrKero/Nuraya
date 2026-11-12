@@ -1,10 +1,10 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.8.2', date: '2026-11-12' };
+const APP = { name: 'Nuraya', version: '1.8.3', date: '2026-11-12' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
-  name: 'Kerem', lang: 'de', theme: 'gruen', appIcon: 'gruen', beads: 'onyx', compass: 'kalli', tasbihBg: 'black',
+  name: 'Kerem', lang: 'de', theme: 'gruen', appIcon: 'kaaba_gruen', beads: 'onyx', compass: 'kalli', tasbihBg: 'black',
   loc: { name: 'Aachen', cc: 'DE', lat: 50.7753, lon: 6.0839, tz: 'Europe/Berlin' }, places: [], trips: [], autoLoc: false,
   remind: true, since: null, dismissed: {},
   method: 'diyanet_eu', asr: 'standard', pnames: 'tr', adj: { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
@@ -280,9 +280,9 @@ function applyTheme() {
   $('meta[name="theme-color"]').setAttribute('content', c || '#002b27');
   applyIcon();
 }
-const APP_ICONS = ['gruen', 'kaaba_gruen', 'moschee_gruen'];
+const APP_ICONS = ['kaaba_gruen', 'gruen', 'moschee_gruen'];
 function applyIcon() {
-  const k = APP_ICONS.includes(S.appIcon) ? S.appIcon : 'gruen';
+  const k = APP_ICONS.includes(S.appIcon) ? S.appIcon : 'kaaba_gruen';
   $('link[rel="apple-touch-icon"]').href = `icons/alt/${k}-180.png`;
   $('link[rel="icon"]').href = `icons/alt/${k}-180.png`;
   $$('img.logo, img.about-icon').forEach(i => i.src = `icons/alt/${k}-512.png`);
@@ -290,7 +290,9 @@ function applyIcon() {
 
 /* ---------------- Start ---------------- */
 function boot() {
-  loadState(); applyTheme();
+  loadState();
+  if (!S.iconV2) { if (S.appIcon === 'gruen') S.appIcon = 'kaaba_gruen'; S.iconV2 = true; save(); } // Kaaba ist neuer Standard
+  applyTheme();
   $('#tabbar').innerHTML = [['start', 'moonstar'], ['prayer', 'prayer'], ['quran', 'book'], ['calendar', 'cal']]
     .map(([k, i]) => `<button data-tab="${k}">${icon(i)}<span></span></button>`).join('');
   $('#tabbar').onclick = e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); };

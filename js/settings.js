@@ -114,7 +114,7 @@ function settingsHtml() {
   </div></div>
 
   <div class="set-sec"><h4>${t('sAbout')}</h4><div class="set-box"><div class="about">
-    <img class="about-icon" src="icons/alt/${S.appIcon || 'gruen'}-512.png" width="72" height="72" style="border-radius:18px;box-shadow:var(--shadow)" alt="">
+    <img class="about-icon" src="icons/alt/${S.appIcon || 'kaaba_gruen'}-512.png" width="72" height="72" style="border-radius:18px;box-shadow:var(--shadow)" alt="">
     <div style="font-size:22px;font-weight:800;margin-top:10px">${APP.name}</div>
     <div class="muted small">${t('version')} ${APP.version} · ${fmtDate(fromKey(APP.date), { day: 'numeric', month: 'long', year: 'numeric' })}</div>
     <p class="heart">${t('madeWith')}</p>
