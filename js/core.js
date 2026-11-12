@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.8.0', date: '2026-11-12' };
+const APP = { name: 'Nuraya', version: '1.8.1', date: '2026-11-12' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
@@ -326,7 +326,7 @@ function tick() {
 let SWREG = null, UPDATE_READY = false;
 function initSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  navigator.serviceWorker.register('sw.js').then(reg => {
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
     if (navigator.onLine) navigator.serviceWorker.ready.then(r => r.active && r.active.postMessage('fillExtra'));
     SWREG = reg;
     const watch = w => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) onUpdateFound(); });
@@ -343,12 +343,41 @@ function onUpdateFound() {
   else toast(t('updAvail'));
 }
 function applyUpdate() { if (SWREG && SWREG.waiting) SWREG.waiting.postMessage('skipWaiting'); }
+/* Version direkt vom Server lesen – am Browser- und CDN-Cache vorbei */
+async function serverVersion() {
+  const r = await fetch('sw.js?v=' + Date.now(), { cache: 'no-store' });
+  const m = (await r.text()).match(/VERSION = 'nur-v([\d.]+)'/);
+  return m ? m[1] : null;
+}
+/* wartet, bis der neue Service Worker fertig installiert ist (oder scheitert) */
+function waitInstalled(reg, max = 120000) {
+  const t0 = Date.now();
+  return new Promise(ok => {
+    const tick = () => {
+      if (reg.waiting) return ok(true);
+      if (!reg.installing && Date.now() - t0 > 4000) return ok(false);
+      if (Date.now() - t0 > max) return ok(false);
+      setTimeout(tick, 400);
+    };
+    tick();
+  });
+}
+function hardReload() {
+  const keep = k => k.startsWith('nur-extra');
+  caches.keys().then(ks => Promise.all(ks.filter(k => !keep(k)).map(k => caches.delete(k))))
+    .then(() => navigator.serviceWorker ? navigator.serviceWorker.getRegistrations() : [])
+    .then(rs => Promise.all(rs.map(r => r.unregister())))
+    .finally(() => { save(true); location.replace(location.pathname + '?r=' + Date.now()); });
+}
 async function checkUpdate() {
-  if (!SWREG) return toast(t('updNoSW'));
   if (!navigator.onLine) return toast(t('offline'));
   toast(t('updChecking'));
-  try {
-    await SWREG.update();
-    setTimeout(() => { if (SWREG.waiting || SWREG.installing) { UPDATE_READY = true; toast(t('updAvail')); refreshSettings && refreshSettings(); } else toast(t('updNone')); }, 1500);
-  } catch (e) { toast(t('updFail')); }
+  let sv;
+  try { sv = await serverVersion(); } catch (e) { return toast(t('updFail')); }
+  if (!sv || sv === APP.version) return toast(t('updNone') + ' (' + APP.version + ')', 3500);
+  if (!SWREG) return hardReload();
+  toast(t('updLoading', { v: sv }), 60000);
+  if (!SWREG.waiting) { try { await SWREG.update(); } catch (e) {} }
+  if (await waitInstalled(SWREG)) { UPDATE_READY = true; applyUpdate(); return; }
+  if (confirm(t('updHard', { v: sv, c: APP.version }))) hardReload(); else toast(t('updFail'));
 }

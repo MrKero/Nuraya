@@ -544,3 +544,6 @@ Object.assign(I18N.tr, { script: 'Yazı', scr_standard: 'Mushaf Standart', scr_u
   tj_silent: 'Okunmayan harfler (gri)', tj_silentT: 'Gri harfler okurken telaffuz edilmez: cümle içindeki vasl hemzesi (ٱ), şemsî harflerden önceki lâm ve çoğul vavından sonraki elif gibi.',
   tjAuto: 'Kur\'an\'daki renkler yazımdan otomatik belirlenir; bağımsız bir tecvid veri setiyle yaklaşık %95 uyumludur. Nadiren bir yer eksik veya farklı olabilir.' });
 Object.assign(I18N.ar, { script: 'الخط', scr_standard: 'مصحف المدينة', scr_uthmani: 'عثماني', scr_indopak: 'هندي باكستاني', scr_plain: 'بدون تشكيل', tjColors: 'ألوان التجويد', tjColorsSub: 'تلوين أحكام التجويد', tjColorsNo: 'متاح للخط العثماني ومصحف المدينة فقط', tj_silent: 'حروف لا تُنطق' });
+Object.assign(I18N.de, { updLoading: 'Version {v} wird geladen …', updHard: 'Version {v} ist verfügbar (installiert: {c}), konnte aber nicht automatisch geladen werden. Jetzt neu laden? Deine Daten bleiben erhalten.' });
+Object.assign(I18N.tr, { updLoading: '{v} sürümü yükleniyor …', updHard: '{v} sürümü mevcut (yüklü: {c}) ancak otomatik yüklenemedi. Şimdi yeniden yüklensin mi? Verilerin korunur.' });
+Object.assign(I18N.ar, { updLoading: 'جارٍ تحميل الإصدار {v} …', updHard: 'الإصدار {v} متاح (المثبت: {c}). إعادة التحميل الآن؟ تبقى بياناتك محفوظة.' });
