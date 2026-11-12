@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.6.2', date: '2026-11-11' };
+const APP = { name: 'Nuraya', version: '1.8.0', date: '2026-11-12' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
@@ -10,7 +10,7 @@ const DEFAULTS = {
   method: 'diyanet_eu', asr: 'standard', pnames: 'tr', adj: { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
   timeSource: 'calc', dl: null, prayers: {},
   tasbih: { counters: [{ name: '', count: 0, target: 33, dhikr: 'subhanallah', seq: null, seqI: 0, rounds: 0 }], active: 0, sound: true, haptic: true, days: {} },
-  quran: { last: null, bookmarks: [], showTr: true, showDe: true, arSize: 30, reciter: 'alafasy', kbps: 128, speed: 1, follow: true, theme: 'app', bism: true,
+  quran: { script: 'uthmani', tajweed: false, last: null, bookmarks: [], showTr: true, showDe: true, arSize: 30, reciter: 'alafasy', kbps: 128, speed: 1, follow: true, theme: 'app', bism: true,
     stopAfter: 'surah', repeat: 1, repeatSurah: false, scrollSpeed: 24 },
   zakat: { cur: '€', basis: 'gold85', goldPrice: '', silverPrice: '', vals: { cash: '', goldG: '', silverG: '', invest: '', receivables: '', trade: '', realestate: '', rentSaved: '', other: '', debts: '' }, agri: { kg: '', water: 'rain' }, live: { camel: '', cow: '', sheep: '' } },
   seenAudioHelp: false,
@@ -110,7 +110,7 @@ const IC = {
   edit2: '<path d="M14 5l5 5M4 20l1-5L15.5 4.5a2.1 2.1 0 0 1 3 3L8 18z"/>',
   moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/>',
   star: '<path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4l-5.3 3 1.2-6L3.4 9.3l6-.7z"/>',
-  scroll: '<path d="M12 3v14M7 12.5l5 5 5-5"/><path d="M5 21h14"/>',
+  scroll: '<path d="M2.5 6.2c2.6-1.3 5.6-1.3 8.5.4v13c-2.9-1.6-5.9-1.6-8.5-.3z"/><path d="M11 6.6c1.3-2.2 3.6-3.6 6.4-3.9-.4 2.5 0 5.6 1.3 8.2-2.8.3-5.6 1.7-7.7 4"/><path d="M21.5 8.3v11.2c-3.4-1.4-7-1.1-10.5.6"/>',
   flame: '<path d="M12 21c4 0 6.5-2.7 6.5-6.3 0-4-3.3-6.3-4.2-10.2-2 1.5-3.3 4-3.3 6.3-1-.6-1.7-1.8-2-3-1.5 1.7-2.5 3.8-2.5 6.9C6.5 18.3 8 21 12 21Z"/>',
 };
 const icon = (n, cls = 'ic') => `<svg class="${cls}${['back', 'chev', 'chevl', 'prev', 'next'].includes(n) ? ' dirx' : ''}" viewBox="0 0 24 24">${IC[n] || ''}</svg>`;
@@ -152,6 +152,12 @@ function clickSound(kind = 'bead', mat = 'stone') {
 
 /* ---------------- Sheets & Vollbild-Ansichten ---------------- */
 const stack = [];
+let lockY = 0, locked = false;
+function syncScrollLock() {
+  const b = document.body;
+  if (stack.length && !locked) { lockY = scrollY; locked = true; Object.assign(b.style, { position: 'fixed', top: -lockY + 'px', left: '0', right: '0', width: '100%' }); }
+  else if (!stack.length && locked) { locked = false; Object.assign(b.style, { position: '', top: '', left: '', right: '', width: '' }); scrollTo(0, lockY); }
+}
 function openSheet(title, body, { onClose, cls = '' } = {}) {
   const bd = document.createElement('div'); bd.className = 'backdrop';
   const sh = document.createElement('div'); sh.className = 'sheet ' + cls;
@@ -162,7 +168,7 @@ function openSheet(title, body, { onClose, cls = '' } = {}) {
     bd.classList.remove('show'); sh.classList.remove('show');
     setTimeout(() => { bd.remove(); sh.remove(); }, 330);
     const i = stack.indexOf(entry); if (i >= 0) stack.splice(i, 1);
-    onClose && onClose();
+    syncScrollLock(); onClose && onClose();
   };
   const entry = { el: sh, close };
   bd.onclick = close; sh.querySelector('[data-x]').onclick = close;
@@ -173,7 +179,8 @@ function openSheet(title, body, { onClose, cls = '' } = {}) {
     z.addEventListener('touchmove', e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transform = `translateY(${dy}px)`; }, { passive: true });
     z.addEventListener('touchend', () => { sh.style.transition = ''; sh.style.transform = ''; if (dy > 110) close(); y0 = null; dy = 0; });
   });
-  stack.push(entry);
+  stack.push(entry); syncScrollLock();
+  bd.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
   return { el: sh, body: sh.querySelector('.sh-b'), close };
 }
 function openView(html, { cls = '', onClose } = {}) {
@@ -184,9 +191,9 @@ function openView(html, { cls = '', onClose } = {}) {
     v.classList.remove('show'); setTimeout(() => v.remove(), 340);
     const i = stack.indexOf(entry); if (i >= 0) stack.splice(i, 1);
     if (!$$('.view.show').length) document.body.classList.remove('in-view');
-    onClose && onClose();
+    syncScrollLock(); onClose && onClose();
   };
-  const entry = { el: v, close }; stack.push(entry);
+  const entry = { el: v, close }; stack.push(entry); syncScrollLock();
   v.querySelectorAll('[data-back]').forEach(b => b.onclick = close);
   // vom linken Rand wischen = zurück (wie iOS)
   let x0 = null;
@@ -253,6 +260,7 @@ function setTab(tab) {
   TAB = tab;
   $$('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   $$('.page').forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
+  $('#infoBtn').classList.toggle('hidden', tab !== 'quran');
   renderPage(tab); scrollTo({ top: 0 });
   if (tab === 'quran' && !S.seenAudioHelp) setTimeout(() => openAudioHelp(), 350);
 }
@@ -288,14 +296,13 @@ function boot() {
   $('#tabbar').onclick = e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); };
   $('#editBtn').innerHTML = icon('pen'); $('#setBtn').innerHTML = icon('gear');
   $('#editBtn').onclick = () => setEdit(!EDIT);
+  $('#infoBtn').innerHTML = icon('info'); $('#infoBtn').onclick = () => openTajweed();
   $('#setBtn').onclick = () => openSettings();
   $('#totop').innerHTML = icon('up');
   $('#totop').onclick = () => { const v = $$('.view.show').pop(); (v ? v.querySelector('.v-b') : window).scrollTo({ top: 0, behavior: 'smooth' }); };
   addEventListener('scroll', () => $('#totop').classList.toggle('show', scrollY > 320 && !document.body.classList.contains('in-view')), { passive: true });
   // Zoom verhindern (iOS ignoriert user-scalable teilweise)
   ['gesturestart', 'gesturechange'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-  let lastTouch = 0;
-  document.addEventListener('touchend', e => { const n = Date.now(); if (n - lastTouch < 320 && !e.target.closest('input,textarea,select')) e.preventDefault(); lastTouch = n; }, { passive: false });
   renderAll(); setTab('start');
   setInterval(tick, 1000);
   initSW();
@@ -320,6 +327,7 @@ let SWREG = null, UPDATE_READY = false;
 function initSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
   navigator.serviceWorker.register('sw.js').then(reg => {
+    if (navigator.onLine) navigator.serviceWorker.ready.then(r => r.active && r.active.postMessage('fillExtra'));
     SWREG = reg;
     const watch = w => w && w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) onUpdateFound(); });
     if (reg.waiting && navigator.serviceWorker.controller) onUpdateFound();

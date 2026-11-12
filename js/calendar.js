@@ -65,7 +65,7 @@ function nextDayCard() {
   const nx = specialDays().find(e => daysUntil(e.date) >= 0), now = new Date();
   return `<div class="sec-h"><h2>${t('secNextDay')}</h2><a href="#" data-go>${t('tab_calendar')}</a></div>
     <div class="card"><div class="muted small" style="margin-bottom:10px">${t('todayIs')} <b style="color:var(--fg)">${hijriStr(now)} ${t('ah')}</b></div>
-    ${nx ? `<div class="hero-next">${MOON}<div class="grow"><b style="font-size:18px">${evName(nx)}</b><div class="muted small">${fmtDate(nx.date, { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
+    ${nx ? `<div class="hero-next" data-evd="${nx.key}|${keyOf(nx.date)}" role="button">${MOON}<div class="grow"><b style="font-size:18px">${evName(nx)}</b><div class="muted small">${fmtDate(nx.date, { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
       <div style="text-align:end"><div style="font-size:26px;font-weight:800;color:var(--accent)">${daysUntil(nx.date)}</div><div class="tiny">${t('daysWord')}</div></div></div>` : ''}</div>`;
 }
 
@@ -106,7 +106,7 @@ registerSection('calendar', {
       const d = fromKey(b.dataset.cday), ev = evOn(b.dataset.cday);
       openSheet(fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), `<div class="card"><div class="muted small">${t('hijriDate')}</div><div style="font-size:20px;font-weight:700;margin:4px 0 2px">${hijriStr(d)} ${t('ah')}</div>
         <div class="ar" style="font-size:20px;text-align:start">${arNum(hijri(d).d)} ${HM.ar[hijri(d).m - 1]} ${arNum(hijri(d).y)}</div></div>
-        ${ev.length ? `<div class="card" style="margin-top:10px">${ev.map(e => `<b style="font-size:17px">${evName(e)}</b><p class="muted small" style="margin:4px 0 0">${t(e.key + 'D')}</p>`).join('<hr style="border:0;border-top:1px solid var(--line);margin:12px 0">')}</div>` : ''}`);
+        ${ev.length ? `<div class="card" style="margin-top:10px">${ev.map(e => `<b style="font-size:17px">${evName(e)}</b><p class="muted small" style="margin:6px 0 0;line-height:1.55">${t(e.key + 'L') !== e.key + 'L' ? t(e.key + 'L') : t(e.key + 'D')}</p>`).join('<hr style="border:0;border-top:1px solid var(--line);margin:12px 0">')}</div>` : ''}`);
     });
   },
 });
@@ -130,6 +130,18 @@ registerSection('calendar', {
 });
 function evRow(e) {
   const n = daysUntil(e.date);
-  return `<div class="ev ${n < 0 ? 'past' : ''}"><div class="dbox"><b>${e.date.getDate()}</b><span>${fmtDate(e.date, { month: 'short' })}</span></div>
-    <div class="grow"><b>${evName(e)}</b><span>${fmtDate(e.date, { weekday: 'long' })} · ${e.h.d}${S.lang === 'de' ? '.' : ''} ${(HM[S.lang] || HM.de)[e.h.m - 1]}</span></div><span class="in">${inDays(n)}</span></div>`;
+  return `<div class="ev ${n < 0 ? 'past' : ''}" data-evd="${e.key}|${keyOf(e.date)}" role="button"><div class="dbox"><b>${e.date.getDate()}</b><span>${fmtDate(e.date, { month: 'short' })}</span></div>
+    <div class="grow"><b>${evName(e)}</b><span>${fmtDate(e.date, { weekday: 'long' })} · ${e.h.d}${S.lang === 'de' ? '.' : ''} ${(HM[S.lang] || HM.de)[e.h.m - 1]}</span></div><span class="in">${inDays(n)}</span>${icon('chev')}</div>`;
 }
+
+/* Erklärung zu einem besonderen Tag */
+function openEvent(key, dateKey) {
+  const e = specialDays().find(x => x.key === key && keyOf(x.date) === dateKey) || { key, date: fromKey(dateKey), kind: SPECIAL.find(x => x[2] === key)[3], h: hijri(fromKey(dateKey)) };
+  const n = daysUntil(e.date), long = t(key + 'L') !== key + 'L' ? t(key + 'L') : t(key + 'D');
+  openSheet(evName(e), `<div class="card">
+      <div class="row"><div class="ev" style="padding:0;border:0;flex:1"><div class="dbox"><b>${e.date.getDate()}</b><span>${fmtDate(e.date, { month: 'short' })}</span></div>
+      <div class="grow"><b>${fmtDate(e.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</b><span>${e.h.d}${S.lang === 'de' ? '.' : ''} ${(HM[S.lang] || HM.de)[e.h.m - 1]} ${e.h.y} ${t('ah')}</span></div></div><span class="pill"><span>${inDays(n)}</span></span></div>
+      ${e.kind === 'kandil' ? `<p class="tiny" style="margin:12px 0 0">🌙 ${t('kandilHint')}</p>` : ''}</div>
+    <div class="card ev-text" style="margin-top:10px;line-height:1.6">${long}</div>`);
+}
+document.addEventListener('click', ev => { const r = ev.target.closest('[data-evd]'); if (r) { const [k, d] = r.dataset.evd.split('|'); openEvent(k, d); } });

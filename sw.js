@@ -1,8 +1,8 @@
 /* Nuraya – Service Worker: alles offline verfügbar */
-const VERSION = 'nur-v1.6.2';
+const VERSION = 'nur-v1.8.0';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/settings.js',
+  'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/tajtag.js', 'js/tajweed.js', 'js/settings.js',
   'lib/adhan.min.js', 'lib/fflate.min.js', 'lib/tz-lookup.js', 'data/cities.json',
   'fonts/amiri-quran.woff2', 'fonts/aref-ruqaa.woff2', 'fonts/reem-kufi.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
@@ -11,13 +11,17 @@ const CORE = [
 ];
 for (let i = 1; i <= 114; i++) CORE.push('data/quran/' + String(i).padStart(3, '0') + '.json');
 
+// Schriftarten & Koran-Skripte: eigener, versionsunabhängiger Speicher – wird nur einmal geladen
+const EXTRA_CACHE = 'nur-extra-1';
+const EXTRA = ['data/scripts/standard.json', 'data/scripts/indopak.json', 'data/scripts/plain.json', 'fonts/kfgqpc-hafs.woff2', 'fonts/indopak.woff2'];
+const fillExtra = () => caches.open(EXTRA_CACHE).then(c => Promise.all(EXTRA.map(u => c.match(u).then(r => r || c.add(u).catch(() => {})))));
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))));
+  e.waitUntil(Promise.all([caches.open(VERSION).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))), fillExtra().catch(() => {})]));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION && k !== EXTRA_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipWaiting(); });
+self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipWaiting(); if (e.data === 'fillExtra') e.waitUntil(fillExtra()); });
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return; // fremde Server (Audio, Diyanet) nicht anfassen

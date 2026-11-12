@@ -28,6 +28,21 @@ function fmtMin(sec) {
 function remText(s, a) { const r = remaining(s, a); return `⏱ ${t('remSurah')} <bdi>${fmtMin(r.sur)}</bdi> · ${t('remQuran')} <bdi>${fmtMin(r.all)}</bdi>`; }
 function globalIndex(s, a) { let g = 0; for (let i = 1; i < s; i++) g += sMeta(i)[5]; return g + a; }
 const AYAH_MARK = n => `<span class="amark"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="currentColor" stroke-width=".9"/><path d="M20 2l3 4h-6zM20 38l-3-4h6zM2 20l4-3v6zM38 20l-4 3v-6z" fill="currentColor"/></svg><b>${arNum(n)}</b></span>`;
+/* Ornament-Rahmen über jeder Sure (eigene Zeichnung) */
+function surahBanner(name) {
+  const flower = (x, y, r) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<ellipse rx="${r * .42}" ry="${r}" transform="rotate(${a}) translate(0 ${-r * .9})" fill="#f6d9e6" stroke="#7b3f5c" stroke-width=".8"/>`).join('')}<circle r="${r * .45}" fill="#f2c94c" stroke="#8a6d1a" stroke-width=".6"/></g>`;
+  const side = `<path d="M10 42c18-26 44-26 60-6 10 12 26 12 34 0" fill="none" stroke="#d6efd9" stroke-width="2.2"/><path d="M10 42c18 26 44 26 60 6 10-12 26-12 34 0" fill="none" stroke="#d6efd9" stroke-width="2.2"/>
+    <path d="M70 36c6-14 22-16 30-8M70 48c6 14 22 16 30 8" fill="none" stroke="#1e3b25" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M34 20c4 6 10 8 16 6M34 64c4-6 10-8 16-6" fill="none" stroke="#1e3b25" stroke-width="2.2" stroke-linecap="round"/>
+    ${flower(28, 42, 7)}${flower(56, 22, 4.5)}${flower(56, 62, 4.5)}${flower(92, 42, 4)}`;
+  return `<div class="surah-banner2"><svg viewBox="0 0 600 84" preserveAspectRatio="none" aria-hidden="true">
+    <rect x="1" y="1" width="598" height="82" fill="#3f7f4c" stroke="#1d3d24" stroke-width="2"/>
+    <rect x="5" y="5" width="590" height="74" fill="none" stroke="#a9d7b0" stroke-width="1"/>
+    <g>${side}</g><g transform="translate(600 0) scale(-1 1)">${side}</g>
+    <path d="M150 42c22-30 56-34 84-34h132c28 0 62 4 84 34-22 30-56 34-84 34H234c-28 0-62-4-84-34z" fill="#d3eed8" stroke="#2c5a35" stroke-width="2"/>
+    <path d="M160 42c20-24 50-28 74-28h132c24 0 54 4 74 28-20 24-50 28-74 28H234c-24 0-54-4-74-28z" fill="none" stroke="#7fb98a" stroke-width="1"/>
+  </svg><div class="ar">${name}</div></div>`;
+}
 const SNUM = n => `<span class="snum"><svg viewBox="0 0 40 40"><path d="M20 2l5 6 8 -1-1 8 6 5-6 5 1 8-8-1-5 6-5-6-8 1 1-8-6-5 6-5-1-8 8 1z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>${n}</span>`;
 
 /* ---------------- Reiter „Koran“ ---------------- */
@@ -125,15 +140,19 @@ async function openReader(s, a = 1) {
 async function showSurah(s, a = 1, keepAudio) {
   if (!keepAudio) stopAudio();
   const v = await loadSurah(s), m = sMeta(s), el = R.el; R.s = s;
+  const scr = curScript(); let alt = null;
+  try { alt = await loadScript(scr); } catch (e) { alt = null; }
+  const sc = alt ? scr : 'uthmani', g0 = globalIndex(s, 1) - 1, colors = S.quran.tajweed && tajweedOk(sc);
+  const arOf = (ar, i) => { let x = alt ? alt[g0 + i] : ar; if (sc === 'indopak') x = x.replace(/[\uE000-\uF8FF]+$/, '').replace(/\s*\u06DF([\u06D6-\u06DC]?)$/, '$1'); return colors ? tajHtml(x) : x; };
   $('#rTitle', el).innerHTML = `${sName(s)} <span style="font-size:13px">▾</span>`;
   $('#rSub', el).textContent = `${s}. ${sSub(s)} · ${m[5]} ${t('ayat')}`;
-  const bism = s !== 1 && s !== 9 ? `<div class="bism ar">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>` : '';
-  let html = `<div class="surah-banner"><div class="ar">${m[1]}</div></div>${bism}`;
+  const bism = s !== 1 && s !== 9 ? `<div class="bism ar scr-${sc}">${alt ? arOf('', -g0) : 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'}</div>` : '';
+  let html = `${surahBanner(m[1])}${bism}`;
   v.forEach(([ar, tr, de], i) => {
     const n = i + 1, sj = META.sajda.some(([x, y]) => x === s && y === n);
     html += `<div class="ay" id="ay${n}" data-a="${n}"><div class="ay-top"><button class="ay-tag" data-ay="menu">${t('ayah')} ${s}:${n}${sj ? ' ۩' : ''}</button>
       <div class="ay-act"><button data-ay="play">${icon('play')}</button><button data-ay="bm" class="${isBm(s, n) ? 'on' : ''}">${icon(isBm(s, n) ? 'bookmarkf' : 'bookmark')}</button></div></div>
-      <div class="ar">${ar} ${AYAH_MARK(n)}</div>${S.quran.showTr ? `<div class="tr">${esc(tr)}</div>` : ''}${S.quran.showDe && S.lang !== 'ar' ? `<div class="de">${esc(de)}</div>` : ''}</div>`;
+      <div class="ar scr-${sc}">${arOf(ar, i)} ${AYAH_MARK(n)}</div>${S.quran.showTr ? `<div class="tr">${esc(tr)}</div>` : ''}${S.quran.showDe && S.lang !== 'ar' ? `<div class="de">${esc(de)}</div>` : ''}</div>`;
   });
   html += `<div style="display:flex;gap:10px;padding:20px 16px 130px">${s > 1 ? `<button class="btn grow" data-goto="${s - 1}">‹ ${sName(s - 1)}</button>` : ''}${s < 114 ? `<button class="btn grow" data-goto="${s + 1}">${sName(s + 1)} ›</button>` : ''}</div>`;
   const body = $('#rBody', el); body.innerHTML = html;
@@ -150,6 +169,51 @@ function updProg() {
 }
 const readerThemeCls = () => S.quran.theme && S.quran.theme !== 'app' ? ' rt rt-' + S.quran.theme : '';
 function applyReaderTheme() { if (!R) return; R.el.classList.remove('rt', 'rt-white', 'rt-black', 'rt-paper'); readerThemeCls().trim().split(' ').filter(Boolean).forEach(c => R.el.classList.add(c)); }
+
+/* ---------------- Schriftarten (Skript-Optionen) ---------------- */
+const SCRIPTS = { standard: 'KFGQPC', uthmani: 'AmiriQuran', indopak: 'IndoPak', plain: 'KFGQPC' };
+const SCRIPT_PREVIEW = { standard: 'بِسۡمِ ٱللَّهِ', uthmani: 'بِسۡمِ ٱللَّهِ', indopak: 'بِسْمِ اللّٰهِ', plain: 'بسم الله' };
+const scriptCache = {};
+const curScript = () => SCRIPTS[S.quran.script] ? S.quran.script : 'uthmani';
+async function loadScript(k) {
+  if (k === 'uthmani') return null;
+  if (!scriptCache[k]) scriptCache[k] = fetch(`data/scripts/${k}.json`).then(r => r.json()).catch(e => { delete scriptCache[k]; throw e; });
+  return scriptCache[k];
+}
+const tajweedOk = k => k === 'uthmani' || k === 'standard';
+/* Tajwîd-Farben: Erkennung in js/tajtag.js, Farben wie im Tajwîd-Fenster */
+function tajColor(r) { if (r === 'silent') return '#97a2ad'; const x = TJ_RULES.find(y => y[0] === r); return x ? x[1] : ''; }
+function tajHtml(text) {
+  tajCss();
+  let h = '', p = 0;
+  for (const [a, b, r] of TT.tag(text)) { h += text.slice(p, a) + `<span class="tjc tjc-${r}">${text.slice(a, b)}</span>`; p = b; }
+  return h + text.slice(p);
+}
+let tajCssDone = false;
+function tajCss() {
+  if (tajCssDone) return; tajCssDone = true;
+  const rules = [...TJ_RULES.map(r => r[0]), 'silent'];
+  const st = document.createElement('style');
+  st.textContent = rules.map(r => `.tjc-${r}{color:${tajColor(r)}}.rt-white .tjc-${r},.rt-paper .tjc-${r}{color:color-mix(in srgb,${tajColor(r)} 72%,#000)}`).join('');
+  document.head.appendChild(st);
+}
+function scriptPicker(id) {
+  const k = curScript();
+  return `<div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('script')}</b></span></div>
+    <div class="scr-grid" id="${id}">${Object.keys(SCRIPTS).map(x => `<button data-scr="${x}" class="${k === x ? 'on' : ''}"><span class="scr-prev scr-${x}">${SCRIPT_PREVIEW[x]}</span><small>${t('scr_' + x)}</small></button>`).join('')}</div>
+    <div class="set-row"><span class="grow"><b>${t('tjColors')}</b><span id="${id}N">${tajweedOk(k) ? t('tjColorsSub') : t('tjColorsNo')}</span></span><label class="switch"><input type="checkbox" data-tjc ${S.quran.tajweed ? 'checked' : ''} ${tajweedOk(k) ? '' : 'disabled'}><i></i></label></div>`;
+}
+function bindScriptPicker(root, id, after) {
+  $$('[data-scr]', root).forEach(x => x.onclick = async () => {
+    const k = x.dataset.scr;
+    try { await loadScript(k); } catch (e) { toast(t('scrOffline')); return; }
+    S.quran.script = k; save();
+    $$('[data-scr]', root).forEach(y => y.classList.toggle('on', y === x));
+    const tj = $('[data-tjc]', root); tj.disabled = !tajweedOk(k); $('#' + id + 'N', root).textContent = tajweedOk(k) ? t('tjColorsSub') : t('tjColorsNo');
+    after && after();
+  });
+  $('[data-tjc]', root).onchange = e => { S.quran.tajweed = e.target.checked; save(); after && after(); };
+}
 /* Automatisches Blättern (Scrollen ohne Audio) */
 let SC = null;
 function toggleScroll() { SC ? stopScroll() : startScroll(); }
@@ -219,6 +283,7 @@ function readerOptions() {
   const sh = openSheet(t('display'), `<div class="set-sec"><div class="set-box">
       <div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('readTheme')}</b></span></div>
       <div style="padding:0 12px 12px"><div class="seg">${['app', 'white', 'black', 'paper'].map(k => `<button data-rt="${k}" class="${(S.quran.theme || 'app') === k ? 'on' : ''}">${t('rt_' + k)}</button>`).join('')}</div></div>
+      ${scriptPicker('rScr')}
       ${sw('showTr', t('showPron'))}${S.lang !== 'ar' ? sw('showDe', t('showTransl')) : ''}
       <div class="set-row"><span class="grow"><b>${t('arSize')}</b></span><div class="adj"><button data-fs="-2">−</button><b id="fsV">${S.quran.arSize}</b><button data-fs="2">+</button></div></div></div></div>
     <div class="set-sec"><h4>${t('audio')}</h4><div class="set-box">${sw('follow', t('followAlong'))}${sw('bism', t('playBism'))}
@@ -229,6 +294,7 @@ function readerOptions() {
       <div class="set-row"><span class="grow"><b>${t('reciter')}</b><span>Mishary Rashid al-Afasy</span></span></div>
       <button class="set-row" style="width:100%" data-dl>${icon('download')}<span class="grow" style="text-align:start"><b>${t('dlSurah')}</b><span id="dlState">${t('checking')}</span></span></button></div></div>`);
   const b = sh.body;
+  bindScriptPicker(b, 'rScr', () => showSurah(R.s, R.a, true));
   $$('[data-rt]', b).forEach(x => x.onclick = () => { S.quran.theme = x.dataset.rt; save(); $$('[data-rt]', b).forEach(y => y.classList.toggle('on', y === x)); applyReaderTheme(); });
   $$('[data-qs]', b).forEach(x => x.onchange = () => { const v = x.value; S.quran[x.dataset.qs] = isNaN(+v) ? v : +v; save(); updProg(); });
   $$('[data-o]', b).forEach(i => i.onchange = () => {
@@ -288,10 +354,11 @@ async function playFrom(s, a, bism) {
     navigator.mediaSession.setActionHandler('previoustrack', () => playerAction('prev'));
   }
 }
-function stopAudio() { AU.el.pause(); AU.playing = false; uiAudio(); }
+function stopAudio() { AU.el.pause(); AU.playing = false; AU.single = false; uiAudio(); }
 AU.rep = 0;
 const isJuzStart = (s, a) => META.juz.some(([x, y]) => x === s && y === a);
 AU.el.addEventListener('ended', async () => {
+  if (AU.single) { AU.single = false; AU.playing = false; uiAudio(); return; }
   if (AU.bism) return playFrom(AU.s, AU.a, false);
   const rep = +S.quran.repeat;
   if (rep === 0 || AU.rep + 1 < rep) { AU.rep++; return playFrom(AU.s, AU.a, false); }

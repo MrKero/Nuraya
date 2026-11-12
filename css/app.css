@@ -280,9 +280,9 @@ html[dir="rtl"] .dk-item .grow{text-align:start}
 .ay .tr{color:var(--fg2);text-align:end;font-size:17px;margin-top:10px;line-height:1.45}
 .ay .de{text-align:end;font-size:17px;margin-top:6px;line-height:1.5}
 html[dir="rtl"] .ay .tr,html[dir="rtl"] .ay .de{text-align:start}
-.amark{display:inline-grid;place-items:center;width:1.25em;height:1.25em;font-size:.82em;position:relative;margin:0 .15em;vertical-align:middle;font-family:"AmiriQuran",serif}
+.amark{display:inline-flex;align-items:center;justify-content:center;width:1.25em;height:1.25em;font-size:.82em;position:relative;margin:0 .15em;vertical-align:middle;font-family:"AmiriQuran",serif;line-height:1}
 .amark svg{position:absolute;inset:0;color:#8a5a3a}
-.amark b{position:relative;font-weight:400;font-size:.62em}
+.amark b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:.6em;line-height:1;padding-bottom:.5em}
 .player{position:absolute;left:12px;right:12px;bottom:calc(var(--sab) + 12px);z-index:5;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:22px;
   background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border:1px solid var(--line);box-shadow:var(--shadow)}
 .player .pp{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--card2);flex:none}
@@ -417,3 +417,45 @@ html[dir="rtl"] .steps li::before{left:auto;right:0}
 .set-row.set-head{border-bottom:0;border-top:1px solid var(--line);padding-bottom:10px}
 .set-head+.swatches,.set-head+.design-row,.set-head+div{padding-top:6px!important}
 .set-head+.swatches+.set-row,.set-head+.design-row+.set-row,.set-head+div+.set-row{border-top:1px solid var(--line)}
+.sh-b,.view .v-b{overscroll-behavior:contain}
+.surah-banner2{position:relative;margin:14px 14px 6px;height:clamp(64px,17vw,90px)}
+.surah-banner2 svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))}
+.surah-banner2 .ar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,7.5vw,38px);color:#14261b;padding-bottom:.18em}
+.tj-tabs{display:flex;gap:6px;padding:4px 16px 12px;flex:none}
+.tj-tabs button{padding:9px 16px;border-radius:999px;font-size:15px;font-weight:650;color:var(--fg2)}
+.tj-tabs button.on{background:var(--fg);color:var(--bg1)}
+.tj-h{font-size:21px;margin:18px 4px 10px;font-family:Georgia,"Times New Roman",serif}
+.tj-list{padding:4px 16px}
+.tj-rule{padding:16px 0;border-bottom:1px solid var(--line)}
+.tj-rule:last-child{border-bottom:0}
+.tj-rule>b{font-size:18px}
+.tj-rule p,.tj-stop p{margin:8px 0 10px;line-height:1.5;font-size:15.5px}
+.tj-ex{align-items:center;gap:10px;margin-bottom:6px}
+.tj-ex .ar{font-size:26px;line-height:2;text-align:right}
+.tj-stop{border-bottom:1px solid var(--line)}
+.tj-stop:last-child{border-bottom:0}
+.tj-stop summary{list-style:none;display:flex;align-items:center;gap:14px;padding:12px 0;font-size:16px;font-weight:600;line-height:1.3}
+.tj-stop summary::-webkit-details-marker{display:none}
+.tj-stop summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--fg2);border-bottom:2px solid var(--fg2);transform:rotate(45deg);transition:.2s;margin-inline-end:4px}
+.tj-stop[open] summary::after{transform:rotate(-135deg)}
+.tj-stop[open]{background:var(--card2);margin:0 -14px;padding:0 14px}
+.tj-sign{font-size:30px;min-width:44px;text-align:center;color:var(--accent);line-height:1;display:flex;align-items:center;justify-content:center;height:44px;position:relative;top:-.3em}
+.tj-stop>div{padding-bottom:14px}
+.ev[data-evd]{cursor:pointer}
+.ev[data-evd]>svg{width:16px;height:16px;color:var(--fg3);flex:none}
+.hero-next[data-evd]{cursor:pointer}
+.tj-list{overflow:hidden}
+@font-face{font-family:"KFGQPC";src:url("../fonts/kfgqpc-hafs.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"IndoPak";src:url("../fonts/indopak.woff2") format("woff2");font-display:swap}
+.ar.scr-standard,.scr-prev.scr-standard{font-family:"KFGQPC","AmiriQuran",serif}
+.ar.scr-plain,.scr-prev.scr-plain{font-family:"KFGQPC","AmiriQuran",serif}
+.ar.scr-indopak,.scr-prev.scr-indopak{font-family:"IndoPak","AmiriQuran",serif}
+.scr-prev.scr-uthmani{font-family:"AmiriQuran",serif}
+.ay .ar.scr-standard,.ay .ar.scr-plain{line-height:2.15}
+.ay .ar.scr-indopak{line-height:2.3}
+.scr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 12px 12px}
+.scr-grid button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;color:var(--fg2);padding:0;font:inherit}
+.scr-prev{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1.25;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--fg);font-size:21px;direction:rtl;line-height:1.6}
+.scr-grid button.on .scr-prev{border:2.5px solid var(--accent)}
+.scr-grid small{font-size:11.5px;line-height:1.25;text-align:center;min-height:2.5em}
+.scr-grid button.on small{color:var(--fg);font-weight:600}

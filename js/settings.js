@@ -18,6 +18,10 @@ const LICENSES = [
   ['Städte-Datenbank', 'GeoNames, CC BY 4.0', 'Über all-the-cities (MIT).'],
   ['Zeitzonen', 'tz-lookup, CC0', ''],
   ['ZIP-Import', 'fflate, MIT', ''],
+  ['Koran-Text Mushaf-Standard & ohne Diakritika', 'King Fahd Glorious Quran Printing Complex (KFGQPC), Hafs v18', 'qurancomplex.gov.sa – unverändert, über quran-data-kfgqpc.'],
+  ['Schrift KFGQPC Uthmanic Script Hafs', 'King Fahd Glorious Quran Printing Complex', 'Kostenlos zur Wiedergabe des Korans; unverändert eingebunden.'],
+  ['Koran-Text & Schrift IndoPak', 'IndoPak Nastaleeq von Ayman Siddiqui & R. Siddiqua (QuranWBW.com / Quran.com)', 'Sadaqa-e-Jaria – nur mit Namensnennung, nicht verkaufen oder verändern.'],
+  ['Tajwîd-Farben', 'Eigene Regel-Erkennung', 'Abgeglichen mit dem Datensatz quran-tajweed von Collin Fair (CC BY 4.0).'],
   ['Schriften', 'Amiri Quran, Aref Ruqaa, Reem Kufi – SIL Open Font License 1.1', 'Über Fontsource.'],
 ];
 const selRowS = (k, label, opts) => `<div class="set-row"><span class="grow"><b>${label}</b></span><select data-qs="${k}">${opts.map(([v, n]) => `<option value="${v}" ${String(S.quran[k]) === String(v) ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`;
@@ -74,7 +78,8 @@ function settingsHtml() {
   </div></div>
 
   <div class="set-sec"><h4>${t('sQuran')}</h4><div class="set-box">
-    <div class="set-row set-head" style="border-top:0"><span class="grow"><b>${t('readTheme')}</b></span></div>
+    ${scriptPicker('sScr')}
+    <div class="set-row set-head"><span class="grow"><b>${t('readTheme')}</b></span></div>
     <div style="padding:0 12px 12px"><div class="seg">${['app', 'white', 'black', 'paper'].map(k => `<button data-srt="${k}" class="${(S.quran.theme || 'app') === k ? 'on' : ''}">${t('rt_' + k)}</button>`).join('')}</div></div>
     ${selRowS('stopAfter', t('stopAfter'), [['ayah', t('stopAyah')], ['surah', t('stopSurah')], ['juz', t('stopJuz')], ['never', t('stopNever')]])}
     ${selRowS('repeat', t('repeatAyah'), [[1, t('rep1')], [2, '2×'], [3, '3×'], [5, '5×'], [10, '10×'], [0, '∞']])}
@@ -133,6 +138,7 @@ function bindSettings(b) {
   });
   $$('[data-adj]', b).forEach(x => x.onclick = () => { const [k, d] = x.dataset.adj.split('|'); S.adj[k] = Math.max(-30, Math.min(30, S.adj[k] + +d)); clearTimes(); rerender(); });
   $$('[data-hadj]', b).forEach(x => x.onclick = () => { S.hijriAdj = Math.max(-2, Math.min(2, S.hijriAdj + +x.dataset.hadj)); hCache.clear(); evCache = null; rerender(); });
+  bindScriptPicker(b, 'sScr', () => { if (typeof R !== 'undefined' && R) showSurah(R.s, R.a, true); });
   $$('[data-srt]', b).forEach(x => x.onclick = () => { S.quran.theme = x.dataset.srt; save(); applyReaderTheme(); refreshSettings(); });
   $$('[data-qs]', b).forEach(x => x.onchange = () => { const v = x.value; S.quran[x.dataset.qs] = isNaN(+v) ? v : +v; save(); renderAll(); });
   $$('[data-ws]', b).forEach(x => x.onclick = () => { S.weekStart = +x.dataset.ws; rerender(); });
