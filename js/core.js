@@ -1,10 +1,10 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '1.8.3', date: '2026-11-12' };
+const APP = { name: 'Nuraya', version: '1.9.0', date: '2026-11-14' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
-  name: 'Kerem', lang: 'de', theme: 'gruen', appIcon: 'kaaba_gruen', beads: 'onyx', compass: 'kalli', tasbihBg: 'black',
+  name: '', lang: 'de', theme: 'gruen', appIcon: 'kaaba_gruen', beads: 'onyx', compass: 'kalli', tasbihBg: 'black',
   loc: { name: 'Aachen', cc: 'DE', lat: 50.7753, lon: 6.0839, tz: 'Europe/Berlin' }, places: [], trips: [], autoLoc: false,
   remind: true, since: null, dismissed: {},
   method: 'diyanet_eu', asr: 'standard', pnames: 'tr', adj: { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
@@ -152,12 +152,8 @@ function clickSound(kind = 'bead', mat = 'stone') {
 
 /* ---------------- Sheets & Vollbild-Ansichten ---------------- */
 const stack = [];
-let lockY = 0, locked = false;
-function syncScrollLock() {
-  const b = document.body;
-  if (stack.length && !locked) { lockY = scrollY; locked = true; Object.assign(b.style, { position: 'fixed', top: -lockY + 'px', left: '0', right: '0', width: '100%' }); }
-  else if (!stack.length && locked) { locked = false; Object.assign(b.style, { position: '', top: '', left: '', right: '', width: '' }); scrollTo(0, lockY); }
-}
+/* Hintergrund sperren, solange ein Fenster offen ist – ohne position:fixed (das bringt iOS durcheinander) */
+function syncScrollLock() { document.documentElement.classList.toggle('lock', stack.length > 0); }
 function openSheet(title, body, { onClose, cls = '' } = {}) {
   const bd = document.createElement('div'); bd.className = 'backdrop';
   const sh = document.createElement('div'); sh.className = 'sheet ' + cls;
@@ -216,6 +212,13 @@ function orderFor(tab) {
 const isHidden = (tab, id) => !!(S.layout[tab] && S.layout[tab].hidden && S.layout[tab].hidden.includes(id));
 function renderPage(tab = TAB) {
   const page = $(`.page[data-tab="${tab}"]`); if (!page) return;
+  // Ankerpunkt merken, damit die Seite beim Neuaufbau nicht springt (z. B. wenn ein Hinweis erscheint/verschwindet)
+  let anc = null;
+  if (tab === TAB && scrollY > 0) {
+    const lim = ($('#top') ? $('#top').getBoundingClientRect().bottom : 0);
+    const el = $$('.sec', page).find(x => x.getBoundingClientRect().bottom > lim + 4);
+    if (el) anc = { id: el.dataset.sec, top: el.getBoundingClientRect().top };
+  }
   const order = orderFor(tab);
   let html = '';
   if (EDIT && tab === TAB) html += `<div class="edit-banner"><b>${t('editTitle')}</b><p>${t('editHelp')}</p>
@@ -233,6 +236,7 @@ function renderPage(tab = TAB) {
   });
   page.innerHTML = html;
   page.classList.toggle('editing', EDIT && tab === TAB);
+  if (anc) { const el = page.querySelector(`.sec[data-sec="${anc.id}"]`); if (el) { const d = el.getBoundingClientRect().top - anc.top; if (Math.abs(d) > 1) scrollTo(0, scrollY + d); } }
   if (!(EDIT && tab === TAB)) SECTIONS[tab].forEach(d => { if (d.after && !isHidden(tab, d.id)) try { d.after(page.querySelector(`[data-sec="${d.id}"]`)); } catch (e) { console.error(e); } });
 }
 function renderAll() { Object.keys(SECTIONS).forEach(renderPage); renderTop(); }
@@ -291,6 +295,7 @@ function applyIcon() {
 /* ---------------- Start ---------------- */
 function boot() {
   loadState();
+  if (!S.nameV2) { if (S.name === 'Kerem') S.name = ''; S.nameV2 = true; save(); } // Name nicht mehr vorausgefüllt
   if (!S.iconV2) { if (S.appIcon === 'gruen') S.appIcon = 'kaaba_gruen'; S.iconV2 = true; save(); } // Kaaba ist neuer Standard
   applyTheme();
   $('#tabbar').innerHTML = [['start', 'moonstar'], ['prayer', 'prayer'], ['quran', 'book'], ['calendar', 'cal']]

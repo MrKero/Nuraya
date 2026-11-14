@@ -142,6 +142,7 @@ async function showSurah(s, a = 1, keepAudio) {
   const v = await loadSurah(s), m = sMeta(s), el = R.el; R.s = s;
   const scr = curScript(); let alt = null;
   try { alt = await loadScript(scr); } catch (e) { alt = null; }
+  await loadTransl();
   const sc = alt ? scr : 'uthmani', g0 = globalIndex(s, 1) - 1, colors = S.quran.tajweed && tajweedOk(sc);
   const arOf = (ar, i) => { let x = alt ? alt[g0 + i] : ar; if (sc === 'indopak') x = x.replace(/[\uE000-\uF8FF]+$/, '').replace(/\s*\u06DF([\u06D6-\u06DC]?)$/, '$1'); return colors ? tajHtml(x) : x; };
   $('#rTitle', el).innerHTML = `${sName(s)} <span style="font-size:13px">▾</span>`;
@@ -152,7 +153,7 @@ async function showSurah(s, a = 1, keepAudio) {
     const n = i + 1, sj = META.sajda.some(([x, y]) => x === s && y === n);
     html += `<div class="ay" id="ay${n}" data-a="${n}"><div class="ay-top"><button class="ay-tag" data-ay="menu">${t('ayah')} ${s}:${n}${sj ? ' ۩' : ''}</button>
       <div class="ay-act"><button data-ay="play">${icon('play')}</button><button data-ay="bm" class="${isBm(s, n) ? 'on' : ''}">${icon(isBm(s, n) ? 'bookmarkf' : 'bookmark')}</button></div></div>
-      <div class="ar scr-${sc}">${arOf(ar, i)} ${AYAH_MARK(n)}</div>${S.quran.showTr ? `<div class="tr">${esc(tr)}</div>` : ''}${S.quran.showDe && S.lang !== 'ar' ? `<div class="de">${esc(de)}</div>` : ''}</div>`;
+      <div class="ar scr-${sc}">${arOf(ar, i)} ${AYAH_MARK(n)}</div>${S.quran.showTr ? `<div class="tr">${esc(tr)}</div>` : ''}${S.quran.showDe && S.lang !== 'ar' ? `<div class="de">${esc(translOf(s, n, de))}</div>` : ''}</div>`;
   });
   html += `<div style="display:flex;gap:10px;padding:20px 16px 130px">${s > 1 ? `<button class="btn grow" data-goto="${s - 1}">‹ ${sName(s - 1)}</button>` : ''}${s < 114 ? `<button class="btn grow" data-goto="${s + 1}">${sName(s + 1)} ›</button>` : ''}</div>`;
   const body = $('#rBody', el); body.innerHTML = html;
@@ -180,6 +181,10 @@ async function loadScript(k) {
   if (!scriptCache[k]) scriptCache[k] = fetch(`data/scripts/${k}.json`).then(r => r.json()).catch(e => { delete scriptCache[k]; throw e; });
   return scriptCache[k];
 }
+/* Übersetzung passend zur App-Sprache: Deutsch (Bubenheim & Elyas) oder Türkisch (Diyanet İşleri) */
+const TRL = {};
+async function loadTransl() { if (S.lang !== 'tr') return null; if (!TRL.tr) { try { TRL.tr = await (await fetch('data/scripts/tr-diyanet.json')).json(); } catch (e) { return null; } } return TRL.tr; }
+const translOf = (s, a, de) => (S.lang === 'tr' && TRL.tr) ? TRL.tr[globalIndex(s, a) - 1] : de;
 const tajweedOk = k => k === 'uthmani' || k === 'standard';
 /* Tajwîd-Farben: Erkennung in js/tajtag.js, Farben wie im Tajwîd-Fenster */
 function tajColor(r) { if (r === 'silent') return '#97a2ad'; const x = TJ_RULES.find(y => y[0] === r); return x ? x[1] : ''; }
@@ -263,7 +268,7 @@ function ayahAction(act, n) {
       const m = e.target.closest('[data-m]'); if (!m) return; sh.close();
       if (m.dataset.m === 'play') playFrom(R.s, n);
       if (m.dataset.m === 'bm') ayahAction('bm', n);
-      if (m.dataset.m === 'copy') { try { await navigator.clipboard.writeText(`${ar}\n${tr}\n${de}\n(${sName(R.s)} ${R.s}:${n})`); toast(t('copied')); } catch (x) { toast(t('copyFail')); } }
+      if (m.dataset.m === 'copy') { try { await navigator.clipboard.writeText(`${ar}\n${tr}\n${translOf(R.s, n, de)}\n(${sName(R.s)} ${R.s}:${n})`); toast(t('copied')); } catch (x) { toast(t('copyFail')); } }
     };
   }
 }
@@ -420,29 +425,51 @@ function playerAction(a) {
 }
 /* Sure herunterladen (nur auf Wunsch) */
 let dlBusy = false;
-async function downloadSurah(s, report) {
-  if (dlBusy) return toast(t('dlBusy'));
-  if (!navigator.onLine) return toast(t('offline'));
-  dlBusy = true;
-  const rec = RECITERS[S.quran.reciter], cnt = sMeta(s)[5];
-  const list = []; for (let a = 1; a <= cnt; a++) list.push([s, a]);
-  if (!(await getBlob(1, 1))) list.unshift([1, 1]); // Basmala für den Vortrag
-  let done = 0, failed = 0, cors = false;
+const DL = { cancel: false };
+/* lädt eine Liste von Versen ins Gerät (4 parallel, abbrechbar) */
+async function downloadList(list, report) {
+  const rec = RECITERS[S.quran.reciter];
+  let done = 0, failed = 0, cors = false; DL.cancel = false;
   const one = async ([x, a]) => {
     if (await getBlob(x, a)) { done++; return; }
     try {
       const r = await fetch(remoteOf(rec) + fileId(x, a) + '.mp3', { mode: 'cors' });
       if (!r.ok) throw new Error(r.status);
-      const bl = await r.blob(); await putBlob(aKey(x, a), bl); REALDUR[fileId(x, a)] = +(bl.size / ((S.quran.kbps || 128) * 125)).toFixed(1); saveDur(); done++;
+      const bl = await r.blob(); await putBlob(aKey(x, a), bl); REALDUR[fileId(x, a)] = +(bl.size / ((S.quran.kbps || 128) * 125)).toFixed(1); done++;
+      if (done % 25 === 0) saveDur();
     } catch (e) { failed++; if (e instanceof TypeError) cors = true; }
-    report && report(t('dlProgress', { n: done, m: list.length }));
+    report && report(done, list.length, x);
   };
-  const q = list.slice(); const workers = Array.from({ length: 4 }, async () => { while (q.length) { if (cors && done === 0) return; await one(q.shift()); } });
-  await Promise.all(workers);
+  const q = list.slice();
+  await Promise.all(Array.from({ length: 4 }, async () => { while (q.length && !DL.cancel) { if (cors && done === 0) return; await one(q.shift()); } }));
+  saveDur();
+  return { done, failed, cors: cors && done === 0, cancelled: DL.cancel };
+}
+async function downloadSurah(s, report) {
+  if (dlBusy) return toast(t('dlBusy'));
+  if (!navigator.onLine) return toast(t('offline'));
+  dlBusy = true;
+  const list = []; for (let a = 1; a <= sMeta(s)[5]; a++) list.push([s, a]);
+  if (!(await getBlob(1, 1))) list.unshift([1, 1]); // Basmala für den Vortrag
+  const r = await downloadList(list, (n, m) => report && report(t('dlProgress', { n, m })));
   dlBusy = false;
-  if (cors && done === 0) { report && report(t('dlBlocked')); toast(t('dlBlocked'), 6000); return; }
-  report && report(failed ? t('dlSomeFailed', { n: failed }) : t('dlDone'));
-  toast(failed ? t('dlSomeFailed', { n: failed }) : t('dlFinished', { s: sName(s) }));
+  if (r.cors) { report && report(t('dlBlocked')); toast(t('dlBlocked'), 6000); return; }
+  report && report(r.failed ? t('dlSomeFailed', { n: r.failed }) : t('dlDone'));
+  toast(r.failed ? t('dlSomeFailed', { n: r.failed }) : t('dlFinished', { s: sName(s) }));
+}
+/* ganzen Koran herunterladen */
+const quranSizeMB = () => Math.round(106738 * (S.quran.kbps || 128) * 125 / 1048576);
+async function downloadQuran(report) {
+  if (dlBusy) return toast(t('dlBusy'));
+  if (!navigator.onLine) return toast(t('offline'));
+  dlBusy = true;
+  try { navigator.storage && navigator.storage.persist && await navigator.storage.persist(); } catch (e) {}
+  const list = []; META.surahs.forEach(m => { for (let a = 1; a <= m[5]; a++) list.push([m[0], a]); });
+  const r = await downloadList(list, (n, m, s) => report && report(n, m, s));
+  dlBusy = false;
+  if (r.cors) { toast(t('dlBlocked'), 6000); return r; }
+  toast(r.cancelled ? t('dlCancelled') : r.failed ? t('dlSomeFailed', { n: r.failed }) : t('dlAllDone'), 4000);
+  return r;
 }
 /* MP3- oder ZIP-Dateien importieren (z. B. 000_versebyverse.zip von everyayah.com) */
 function measureBps(blob) {

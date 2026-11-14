@@ -109,7 +109,8 @@ function togglePrayer(key, k) {
     // nach Ablauf der Zeit nachfragen: rechtzeitig gebetet (nur später eingetragen) oder Kaza?
     if (prayerEnd(key, k) < now) return prayerMenu(key, k, true);
     setP(key, k, 1); haptic();
-  } else setP(key, k, 0);
+  } else if (prayerEnd(key, k) < now) return prayerMenu(key, k, false, true); // älteren Eintrag nicht versehentlich löschen
+  else setP(key, k, 0);
   renderPage('prayer'); renderPage('start');
 }
 /* Gebete, deren Zeit abgelaufen ist und die noch nicht eingetragen wurden (letzte 3 Tage) */
@@ -162,10 +163,10 @@ function bindChecks(root) {
     b.addEventListener('click', () => { if (!longDone) togglePrayer(key, k); });
   });
 }
-function prayerMenu(key, k, late) {
+function prayerMenu(key, k, late, edit) {
   haptic();
   const d = fromKey(key);
-  const sh = openSheet(`${pname(k)} · ${fmtDate(d, { weekday: 'short', day: 'numeric', month: 'short' })}`, `${late ? `<p class="muted" style="margin:0 4px 12px">${t('lateAsk')}</p>` : ''}
+  const sh = openSheet(`${pname(k)} · ${fmtDate(d, { weekday: 'short', day: 'numeric', month: 'short' })}`, `${late ? `<p class="muted" style="margin:0 4px 12px">${t('lateAsk')}</p>` : ''}${edit ? `<p class="muted" style="margin:0 4px 12px">${t('editAsk')}</p>` : ''}
     <div class="set-box">
       <button class="set-row" style="width:100%" data-v="1"><span class="chk ok"><i>${icon('check')}</i></span><span class="grow" style="text-align:start"><b>${t('prayedOnTime')}</b>${late ? `<span>${t('prayedOnTimeSub')}</span>` : ''}</span></button>
       <button class="set-row" style="width:100%" data-v="2"><span class="chk kaza"><i>${icon('repeat')}</i></span><span class="grow" style="text-align:start"><b>${t('prayedKaza')}</b></span></button>

@@ -1,5 +1,5 @@
 /* Nuraya – Service Worker: alles offline verfügbar */
-const VERSION = 'nur-v1.8.3';
+const VERSION = 'nur-v1.9.0';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/tajtag.js', 'js/tajweed.js', 'js/settings.js',
@@ -13,7 +13,7 @@ for (let i = 1; i <= 114; i++) CORE.push('data/quran/' + String(i).padStart(3, '
 
 // Schriftarten & Koran-Skripte: eigener, versionsunabhängiger Speicher – wird nur einmal geladen
 const EXTRA_CACHE = 'nur-extra-1';
-const EXTRA = ['data/scripts/standard.json', 'data/scripts/indopak.json', 'data/scripts/plain.json', 'fonts/kfgqpc-hafs.woff2', 'fonts/indopak.woff2'];
+const EXTRA = ['data/scripts/standard.json', 'data/scripts/indopak.json', 'data/scripts/plain.json', 'data/scripts/tr-diyanet.json', 'fonts/kfgqpc-hafs.woff2', 'fonts/indopak.woff2'];
 const fillExtra = () => caches.open(EXTRA_CACHE).then(c => Promise.all(EXTRA.map(u => c.match(u).then(r => r || c.add(u).catch(() => {})))));
 self.addEventListener('install', e => {
   // jede Datei einzeln, bei Netzwacklern bis zu 3 Versuche – ein einzelner Fehler soll das Update nicht abbrechen

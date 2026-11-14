@@ -1,6 +1,6 @@
 /* Nuraya – Einstellungen (Fenster) */
 'use strict';
-const THEMES = { gruen: ['#002b27', '#0d5a4b'], bordeaux: ['#22050c', '#6b1a2c'], babyblau: ['#eaf5fd', '#b4d8f3'], marine: ['#030f24', '#163a74'], oliv: ['#171b0c', '#4f5c27'], oled: ['#000', '#000'], weiss: ['#ffffff', '#eef2f0'] };
+const THEMES = { gruen: ['#002b27', '#0d5a4b'], bordeaux: ['#22050c', '#6b1a2c'], babyblau: ['#eaf5fd', '#b4d8f3'], marine: ['#030f24', '#163a74'], oliv: ['#171b0c', '#4f5c27'], oled: ['#000', '#000'], weiss: ['#ffffff', '#eef2f0'], sand: ['#f6efe3', '#e6d5b8'] };
 const FLAGS = {
   de: '<svg viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>',
   tr: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="10.5" cy="10" r="5" fill="#fff"/><circle cx="11.75" cy="10" r="4" fill="#E30A17"/><path d="m14.6 10 4.5-1.5-2.8 3.8V7.7l2.8 3.8z" fill="#fff"/></svg>',
@@ -21,6 +21,7 @@ const LICENSES = [
   ['Koran-Text Mushaf-Standard & ohne Diakritika', 'King Fahd Glorious Quran Printing Complex (KFGQPC), Hafs v18', 'qurancomplex.gov.sa – unverändert, über quran-data-kfgqpc.'],
   ['Schrift KFGQPC Uthmanic Script Hafs', 'King Fahd Glorious Quran Printing Complex', 'Kostenlos zur Wiedergabe des Korans; unverändert eingebunden.'],
   ['Koran-Text & Schrift IndoPak', 'IndoPak Nastaleeq von Ayman Siddiqui & R. Siddiqua (QuranWBW.com / Quran.com)', 'Sadaqa-e-Jaria – nur mit Namensnennung, nicht verkaufen oder verändern.'],
+  ['Türkische Übersetzung', 'Diyanet İşleri Başkanlığı (über tanzil.net / quran-api)', 'Für nicht-kommerzielle Nutzung mit Quellenangabe.'],
   ['Tajwîd-Farben', 'Eigene Regel-Erkennung', 'Abgeglichen mit dem Datensatz quran-tajweed von Collin Fair (CC BY 4.0).'],
   ['Schriften', 'Amiri Quran, Aref Ruqaa, Reem Kufi – SIL Open Font License 1.1', 'Über Fontsource.'],
 ];
@@ -38,7 +39,7 @@ function settingsHtml() {
   <div class="set-sec"><h4>${t('sHelp')}</h4><div class="set-box">${helps.map(h => `<details class="help"><summary>${t(h)}</summary><div>${t(h + 'T')}</div></details>`).join('')}</div></div>
 
   <div class="set-sec"><h4>${t('sProfile')}</h4><div class="set-box">
-    <div class="set-row"><span class="grow"><b>${t('yourName')}</b><span>${t('yourNameSub')}</span></span><input type="text" id="sName" value="${esc(S.name)}" maxlength="24"></div></div></div>
+    <div class="set-row"><span class="grow"><b>${t('yourName')}</b><span>${t('yourNameSub')}</span></span><input type="text" id="sName" value="${esc(S.name)}" placeholder="${t('namePh')}" maxlength="24" autocomplete="given-name"></div></div></div>
 
   <div class="set-sec"><h4>${t('sLang')}</h4><div class="set-box"><div class="flags">${[['de', 'Deutsch'], ['tr', 'Türkçe'], ['ar', 'العربية']].map(([k, n]) => `<button data-lang="${k}" class="${S.lang === k ? 'on' : ''}">${FLAGS[k]}${n}</button>`).join('')}</div></div></div>
 
@@ -211,8 +212,25 @@ async function openAudioManager() {
   keys.forEach(k => { const s = +k.split('/')[1].slice(0, 3); per[s] = (per[s] || 0) + 1; });
   const row = m => { const n = per[m[0]] || 0, full = n >= m[5]; return `<div class="dl-row">${SNUM(m[0])}<div class="grow"><b>${sName(m[0])}</b><span>${full ? t('dlDone') : n ? t('dlPartial', { n, m: m[5] }) : t('dlNone')}</span></div>
     ${n ? `<button class="rbtn" data-del="${m[0]}">${icon('trash')}</button>` : ''}${!full ? `<button class="rbtn" data-get="${m[0]}">${icon('download')}</button>` : ''}</div>`; };
-  const sh = openSheet(t('dlAudio'), `<p class="tiny" style="margin:0 4px 10px">${t('dlAudioNote')}</p><button class="btn full sm" data-delall>${icon('trash')} ${t('deleteAll')}</button><div id="amL">${META.surahs.map(row).join('')}</div>`);
+  const total = META.surahs.reduce((a, m) => a + m[5], 0), have = keys.length;
+  const allBox = (have) => `<div class="card" id="dlAllBox" style="margin-bottom:12px">
+      <div class="row"><div class="grow"><b>${t('dlAllTitle')}</b><div class="tiny">${t('dlAllSub', { mb: quranSizeMB(), k: S.quran.kbps || 128 })}</div></div></div>
+      <div class="progress" style="margin-top:10px"><i id="dlAllBar" style="width:${(have / total * 100).toFixed(1)}%"></i></div>
+      <div class="row" style="margin-top:8px"><span class="tiny grow" id="dlAllTxt">${t('dlHave', { n: have, m: total })}</span>
+      ${dlBusy ? `<button class="btn sm" data-dlstop>${t('cancel')}</button>` : have >= total ? `<span class="tiny">✓ ${t('dlDone')}</span>` : `<button class="btn sm pri" data-dlall>${icon('download')} ${t('dlStart')}</button>`}</div></div>`;
+  const sh = openSheet(t('dlAudio'), `<p class="tiny" style="margin:0 4px 10px">${t('dlAudioNote')}</p>${allBox(have)}<button class="btn full sm" data-delall>${icon('trash')} ${t('deleteAll')}</button><div id="amL">${META.surahs.map(row).join('')}</div>`);
   sh.body.onclick = async e => {
+    if (e.target.closest('[data-dlstop]')) { DL.cancel = true; return; }
+    if (e.target.closest('[data-dlall]')) {
+      if (!confirm(t('dlAllConfirm', { mb: quranSizeMB() }))) return;
+      const p = downloadQuran((n, m, s) => { const b = $('#dlAllBar', sh.body), x = $('#dlAllTxt', sh.body); if (b) b.style.width = (n / m * 100).toFixed(1) + '%'; if (x) x.textContent = t('dlProgress', { n, m }) + ' · ' + sName(s); });
+      $('#dlAllBox', sh.body).outerHTML = allBox(have);
+      await p;
+      const ks = (await allKeys()).filter(k => k.startsWith(S.quran.reciter + '/')); Object.keys(per).forEach(k => delete per[k]);
+      ks.forEach(k => { const s = +k.split('/')[1].slice(0, 3); per[s] = (per[s] || 0) + 1; });
+      if (sh.el.isConnected) { $('#amL', sh.body).innerHTML = META.surahs.map(row).join(''); const box = $('#dlAllBox', sh.body); if (box) box.outerHTML = allBox(ks.length); }
+      return;
+    }
     const d = e.target.closest('[data-del]'), g = e.target.closest('[data-get]'), all = e.target.closest('[data-delall]');
     if (d) { await deleteSurahAudio(+d.dataset.del); delete per[+d.dataset.del]; d.closest('.dl-row').outerHTML = row(sMeta(+d.dataset.del)); }
     if (g) { const s = +g.dataset.get, r = g.closest('.dl-row'); await downloadSurah(s, msg => { const sp = r.querySelector('.grow span'); if (sp) sp.textContent = msg; }); per[s] = await surahDownloaded(s); r.outerHTML = row(sMeta(s)); }

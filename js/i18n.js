@@ -547,3 +547,16 @@ Object.assign(I18N.ar, { script: 'الخط', scr_standard: 'مصحف المدي�
 Object.assign(I18N.de, { updLoading: 'Version {v} wird geladen …', updHard: 'Version {v} ist verfügbar (installiert: {c}), konnte aber nicht automatisch geladen werden. Jetzt neu laden? Deine Daten bleiben erhalten.' });
 Object.assign(I18N.tr, { updLoading: '{v} sürümü yükleniyor …', updHard: '{v} sürümü mevcut (yüklü: {c}) ancak otomatik yüklenemedi. Şimdi yeniden yüklensin mi? Verilerin korunur.' });
 Object.assign(I18N.ar, { updLoading: 'جارٍ تحميل الإصدار {v} …', updHard: 'الإصدار {v} متاح (المثبت: {c}). إعادة التحميل الآن؟ تبقى بياناتك محفوظة.' });
+/* v1.9 */
+Object.assign(I18N.de, { namePh: 'Name', th_sand: 'Sand', editAsk: 'Dieses Gebet ist schon eingetragen. Möchtest du den Eintrag ändern?',
+  dlAllTitle: 'Ganzen Koran herunterladen', dlAllSub: 'Alle 6.236 Verse für die Offline-Wiedergabe · ca. {mb} MB bei {k} kbps', dlStart: 'Laden', dlHave: '{n} von {m} Versen auf dem Gerät',
+  dlAllConfirm: 'Den ganzen Koran (ca. {mb} MB) herunterladen? Am besten im WLAN und mit geöffneter App. Bereits geladene Verse werden übersprungen – du kannst jederzeit abbrechen und später weitermachen.',
+  dlAllDone: 'Der ganze Koran ist jetzt offline verfügbar', dlCancelled: 'Download angehalten – später einfach fortsetzen' });
+Object.assign(I18N.tr, { namePh: 'İsim', th_sand: 'Kum', showTransl: 'Türkçe meal (Diyanet)', editAsk: 'Bu namaz zaten işaretlenmiş. Kaydı değiştirmek istiyor musun?',
+  dlAllTitle: 'Tüm Kur\'an\'ı indir', dlAllSub: '6.236 ayetin tamamı çevrimdışı dinleme için · yakl. {mb} MB ({k} kbps)', dlStart: 'İndir', dlHave: 'Cihazda {m} ayetten {n}',
+  dlAllConfirm: 'Tüm Kur\'an indirilsin mi (yakl. {mb} MB)? En iyisi Wi‑Fi ile ve uygulama açıkken. İndirilmiş ayetler atlanır – istediğin zaman durdurup sonra devam edebilirsin.',
+  dlAllDone: 'Tüm Kur\'an artık çevrimdışı', dlCancelled: 'İndirme durduruldu – sonra devam edebilirsin' });
+Object.assign(I18N.ar, { namePh: 'الاسم', th_sand: 'رملي', editAsk: 'هذه الصلاة مسجلة. هل تريد تعديلها؟', dlAllTitle: 'تحميل القرآن كاملاً', dlAllSub: 'جميع الآيات ٦٢٣٦ · حوالي {mb} م.ب', dlStart: 'تحميل', dlHave: '{n} من {m}', dlAllConfirm: 'تحميل القرآن كاملاً (حوالي {mb} م.ب)؟', dlAllDone: 'القرآن كاملاً متاح دون اتصال', dlCancelled: 'تم إيقاف التحميل' });
+Object.assign(I18N.de, { cancel: 'Abbrechen' }); Object.assign(I18N.tr, { cancel: 'Durdur' }); Object.assign(I18N.ar, { cancel: 'إيقاف' });
+Object.assign(I18N.de, { dlAudio: 'Audio herunterladen', sourcesQuran: 'Arabischer Text: Tanzil (Hafs, Uthmani) bzw. KFGQPC. Deutsch: Bubenheim & Elyas. Türkisch: Diyanet İşleri. Türkische Aussprache: Latin-Umschrift. Audio: Mishary Rashid al-Afasy (everyayah.com).' });
+Object.assign(I18N.tr, { dlAudio: 'Ses indir', sourcesQuran: 'Arapça metin: Tanzil (Hafs, Osmanî) / KFGQPC. Türkçe meal: Diyanet İşleri. Almanca: Bubenheim & Elyas. Okunuş: Latin harfleriyle. Ses: Mishary Rashid al-Afasy (everyayah.com).' });
