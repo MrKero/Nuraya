@@ -560,3 +560,4 @@ Object.assign(I18N.ar, { namePh: 'الاسم', th_sand: 'رملي', editAsk: 'ه
 Object.assign(I18N.de, { cancel: 'Abbrechen' }); Object.assign(I18N.tr, { cancel: 'Durdur' }); Object.assign(I18N.ar, { cancel: 'إيقاف' });
 Object.assign(I18N.de, { dlAudio: 'Audio herunterladen', sourcesQuran: 'Arabischer Text: Tanzil (Hafs, Uthmani) bzw. KFGQPC. Deutsch: Bubenheim & Elyas. Türkisch: Diyanet İşleri. Türkische Aussprache: Latin-Umschrift. Audio: Mishary Rashid al-Afasy (everyayah.com).' });
 Object.assign(I18N.tr, { dlAudio: 'Ses indir', sourcesQuran: 'Arapça metin: Tanzil (Hafs, Osmanî) / KFGQPC. Türkçe meal: Diyanet İşleri. Almanca: Bubenheim & Elyas. Okunuş: Latin harfleriyle. Ses: Mishary Rashid al-Afasy (everyayah.com).' });
+Object.assign(I18N.de, { thisWeek: 'Diese Woche' }); Object.assign(I18N.tr, { thisWeek: 'Bu hafta' }); Object.assign(I18N.ar, { thisWeek: 'هذا الأسبوع' });

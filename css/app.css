@@ -469,3 +469,5 @@ html[dir="rtl"] .steps li::before{left:auto;right:0}
 .set-row .grow,.set-row .grow b,.set-row .grow span,.sh-h h3,.card b,.btn{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
 .set-row .grow{min-width:0}
 @media (max-width:380px){.set-row{gap:10px}.set-row select,.set-row input[type=text]{max-width:46%}.seg button{font-size:13px;padding-left:4px;padding-right:4px}}
+.today-btn{flex:0 0 auto;font-weight:600;color:var(--accent);padding:7px 12px}
+.today-btn svg{width:16px;height:16px}

@@ -187,7 +187,7 @@ function ringSvg(frac, size = 42, stroke = 4, kaza = 0) {
 function dayCounts(key) { let ok = 0, kz = 0; FARD.forEach(k => { const v = pstat(key, k); if (v === 1) ok++; if (v === 2) kz++; }); return { ok, kz }; }
 
 /* ---------------- Abschnitte im Reiter „Gebet“ ---------------- */
-let prayerDay = null, pView = 'day', monthOff = 0;
+let prayerDay = null, pView = 'day', monthOff = 0, weekOff = 0, ovH = 0;
 registerSection('prayer', {
   id: 'times', title: () => t('secTimes'),
   render() {
@@ -209,7 +209,7 @@ registerSection('prayer', {
     }).join('');
     const src = T.src === 'dl' ? t('srcDl') : (METHODS[S.method] || METHODS.diyanet_eu).label;
     return `<div class="sec-h"><div><h2>${prayerDay === tk ? t('today') : fmtDate(sel, { weekday: 'long' })}, ${fmtDate(sel, { day: 'numeric', month: 'long' })}</h2>
-        <div class="muted small" style="margin-top:3px">${hijriStr(sel)} ${t('ah')}</div></div></div>
+        <div class="muted small" style="margin-top:3px">${hijriStr(sel)} ${t('ah')}</div></div>${prayerDay !== prayerDayKey() ? `<button class="pill today-btn" data-today>${icon('cal')}<span>${t('today')}</span></button>` : ''}</div>
       <div class="dstrip" id="dstrip">${strip}</div>
       <div class="chip-row" style="margin:8px 0 14px"><button class="pill" data-loc>${icon(T.place !== S.loc.name ? 'cal' : 'pin')}<span>${esc(T.place)}${T.place !== S.loc.name ? ' · ' + t('trip') : ''}</span></button><span class="pill"><span>${esc(src)}</span></span></div>
       <div class="plist">${rows}</div>`;
@@ -217,8 +217,11 @@ registerSection('prayer', {
   after(el) {
     $$('[data-day]', el).forEach(b => b.onclick = () => { prayerDay = b.dataset.day; renderPage('prayer'); });
     $('[data-loc]', el).onclick = openLocation;
+    const td = $('[data-today]', el); if (td) td.onclick = () => { prayerDay = prayerDayKey(); renderPage('prayer'); };
     bindChecks(el);
-    const sel = $('.sel', el); if (sel) sel.scrollIntoView({ inline: 'center', block: 'nearest' });
+    // nur den Tagesstreifen waagrecht zentrieren – nicht die ganze Seite verschieben
+    const strip = $('#dstrip', el), sel = $('.sel', el);
+    if (strip && sel) strip.scrollLeft = sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2;
   },
 });
 registerSection('prayer', {
@@ -243,17 +246,31 @@ registerSection('prayer', {
   id: 'overview', title: () => t('secOverview'),
   render() {
     const seg = `<div class="seg" style="margin-bottom:12px">${['week', 'month'].map(v => `<button data-pv="${v}" class="${(pView === v || (pView === 'day' && v === 'week')) ? 'on' : ''}">${t(v)}</button>`).join('')}</div>`;
-    return `<div class="sec-h"><h2>${t('secOverview')}</h2></div><div class="card">${seg}${pView === 'month' ? monthView() : weekView()}</div>`;
+    return `<div class="sec-h"><h2>${t('secOverview')}</h2></div><div class="card">${seg}<div class="ov-body" style="${ovH ? `min-height:${ovH}px` : ''}">${pView === 'month' ? monthView() : weekView()}</div></div>`;
   },
   after(el) {
-    $$('[data-pv]', el).forEach(b => b.onclick = () => { pView = b.dataset.pv; renderPage('prayer'); });
+    // beide Ansichten gleich hoch halten, damit beim Umschalten nichts springt
+    const body = $('.ov-body', el);
+    if (body) {
+      const probe = document.createElement('div'); probe.className = 'ov-body'; probe.style.cssText = 'position:absolute;visibility:hidden;left:0;right:0';
+      probe.innerHTML = pView === 'month' ? weekView() : monthView(); body.parentNode.appendChild(probe);
+      const h = Math.ceil(Math.max(probe.offsetHeight, body.scrollHeight)); probe.remove();
+      if (h > ovH) { ovH = h + 12; body.style.minHeight = ovH + 'px'; }
+    }
+    // erneuter Tipp auf die aktive Ansicht springt zurück zu heute
+    $$('[data-pv]', el).forEach(b => b.onclick = () => {
+      const v = b.dataset.pv, cur = pView === 'day' ? 'week' : pView;
+      if (v === cur) { if (v === 'month') monthOff = 0; else weekOff = 0; } else pView = v;
+      renderPage('prayer');
+    });
     $$('[data-mo]', el).forEach(b => b.onclick = () => { monthOff += +b.dataset.mo; renderPage('prayer'); });
+    $$('[data-wo]', el).forEach(b => b.onclick = () => { weekOff += +b.dataset.wo; renderPage('prayer'); });
     $$('[data-goday]', el).forEach(b => b.onclick = () => { prayerDay = b.dataset.goday; renderPage('prayer'); scrollTo({ top: 0, behavior: 'smooth' }); });
     bindChecks(el);
   },
 });
 function weekView() {
-  const now = new Date(), start = addDays(now, -((now.getDay() - S.weekStart + 7) % 7));
+  const now = new Date(), start = addDays(now, -((now.getDay() - S.weekStart + 7) % 7) + 7 * weekOff), end = addDays(start, 6);
   let rows = '';
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i), k = keyOf(d), T = getTimes(k);
@@ -262,7 +279,9 @@ function weekView() {
       return `<td>${fut ? `<span class="dot fut"></span>` : chkHtml(k, p).replace('class="chk', 'style="width:30px;height:30px;background:none" class="chk')}</td>`;
     }).join('')}</tr>`;
   }
-  return `<table class="week"><tr><th></th>${FARD.map(p => `<th>${pname(p).slice(0, 6)}</th>`).join('')}</tr>${rows}</table>
+  const rng = `${fmtDate(start, { day: 'numeric', month: 'short' })} – ${fmtDate(end, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  return `<div class="cal-h"><button class="rbtn" data-wo="-1">${icon('chevl')}</button><div class="t"><b>${weekOff === 0 ? t('thisWeek') : rng}</b>${weekOff === 0 ? `<div class="tiny">${rng}</div>` : ''}</div><button class="rbtn" data-wo="1">${icon('chev')}</button></div>
+    <table class="week"><tr><th></th>${FARD.map(p => `<th>${pname(p).slice(0, 6)}</th>`).join('')}</tr>${rows}</table>
     <div class="legend"><span><i style="background:var(--accent)"></i>${t('onTime')}</span><span><i style="background:var(--warn)"></i>${t('kaza')}</span></div>`;
 }
 function monthView() {
