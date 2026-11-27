@@ -581,3 +581,9 @@ Object.assign(I18N.tr, { mqTitle: 'Yakındaki camiler', mqFind: 'Cami bul', mqTa
   gpsFail: 'Konum alınamadı – lütfen konum servislerine izin ver.', locating: 'Konum belirleniyor …' });
 Object.assign(I18N.ar, { mqTitle: 'مساجد قريبة', mqFind: 'ابحث عن مسجد', mqTapToSearch: 'اضغط للبحث عن المساجد القريبة', mqNearest: 'الأقرب: {n} · {d}', mqNone: 'لم يُعثر على مسجد.', mqUseGps: 'الموقع الدقيق', mqGpsHere: 'موقعي', mqSearch: 'بحث', mqSearching: 'جارٍ البحث …', mqStand: 'آخر تحديث: {d}', mqCount: '{n} نتيجة', mqIntro: 'اختر المسافة ثم اضغط بحث.', mqUnnamed: 'مسجد', mqRoom: 'مصلى', mqMosque: 'مسجد', mqRoute: 'الطريق', mqWeb: 'الموقع', mqFail: 'فشل البحث', mqPrivacy: 'البيانات من OpenStreetMap.', gpsFail: 'الموقع غير متاح', locating: 'تحديد الموقع …' });
 Object.assign(I18N.de, { mqSlow: 'Server antwortet langsam' }); Object.assign(I18N.tr, { mqSlow: 'Sunucu yavaş yanıt veriyor' }); Object.assign(I18N.ar, { mqSlow: 'الخادم بطيء' });
+Object.assign(I18N.de, { mqFailWhy: 'Beide OpenStreetMap-Server haben nicht geantwortet. Meist sind sie gerade überlastet – bitte in ein paar Minuten erneut versuchen. Technische Details:',
+  mqSrcNom: 'Ergebnis aus der OpenStreetMap-Ortssuche (Ersatzserver) – Moscheen ohne Namen fehlen eventuell.',
+  mqPrivacy: 'Die Daten stammen aus OpenStreetMap und werden von Freiwilligen gepflegt – neue oder geänderte Moscheen erscheinen, sobald sie dort eingetragen sind. Nur bei „Suchen“ wird dein ungefährer Standort an OpenStreetMap (Overpass, ersatzweise Nominatim) gesendet; sonst nichts.' });
+Object.assign(I18N.tr, { mqFailWhy: 'OpenStreetMap sunucuları yanıt vermedi – büyük ihtimalle şu an yoğunlar. Lütfen birkaç dakika sonra tekrar dene. Teknik ayrıntı:',
+  mqSrcNom: 'Sonuç OpenStreetMap yer aramasından (yedek sunucu) – isimsiz camiler eksik olabilir.' });
+Object.assign(I18N.ar, { mqFailWhy: 'لم تستجب خوادم OpenStreetMap. حاول لاحقاً.', mqSrcNom: 'النتيجة من بحث OpenStreetMap البديل.' });

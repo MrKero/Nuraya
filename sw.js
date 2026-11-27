@@ -1,5 +1,5 @@
 /* Nuraya – Service Worker: alles offline verfügbar */
-const VERSION = 'nur-v2.1.0';
+const VERSION = 'nur-v2.1.2';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/glasstab.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/mosques.js', 'js/tajtag.js', 'js/tajweed.js', 'js/settings.js',

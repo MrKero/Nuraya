@@ -498,6 +498,8 @@ html[data-theme="babyblau"] .gt-pill,html[data-theme="weiss"] .gt-pill,html[data
 .gt-in{position:absolute;left:0;top:0;display:flex;gap:4px;padding:6px;box-sizing:border-box;margin-top:-6px;will-change:transform}
 .gt-b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:650;color:var(--fg)}
 .gt-b .ic{width:24px;height:24px}
-.gt-b.on .ic{color:var(--accent)}
+.gt-b .ic{color:var(--accent)} /* alles unter der Linse ist grün – auch teilweise verdeckte Symbole */
 .mq-busy{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--card2);font-size:14px}
 .mq-spin{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+.mq-err{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(224,90,90,.12);text-align:start}
+.mq-err code{font-size:11px;opacity:.8;overflow-wrap:anywhere}
