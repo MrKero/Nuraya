@@ -1,6 +1,6 @@
 /* Nuraya – Kern: Zustand, Hilfsfunktionen, Navigation, Bearbeitungsmodus */
 'use strict';
-const APP = { name: 'Nuraya', version: '2.0.0', date: '2026-11-27' };
+const APP = { name: 'Nuraya', version: '2.1.0', date: '2026-11-27' };
 
 /* ---------------- Zustand ---------------- */
 const DEFAULTS = {
@@ -264,6 +264,7 @@ function setTab(tab) {
   if (EDIT) setEdit(false);
   TAB = tab;
   $$('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (typeof GT !== 'undefined') GT.sync();
   $$('.page').forEach(p => p.classList.toggle('active', p.dataset.tab === tab));
   $('#infoBtn').classList.toggle('hidden', tab !== 'quran');
   renderPage(tab); scrollTo({ top: 0 });
@@ -301,7 +302,7 @@ function boot() {
   applyTheme();
   $('#tabbar').innerHTML = [['start', 'moonstar'], ['prayer', 'prayer'], ['quran', 'book'], ['calendar', 'cal']]
     .map(([k, i]) => `<button data-tab="${k}">${icon(i)}<span></span></button>`).join('');
-  $('#tabbar').onclick = e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); };
+  GT.init();
   $('#editBtn').innerHTML = icon('pen'); $('#setBtn').innerHTML = icon('gear');
   $('#editBtn').onclick = () => setEdit(!EDIT);
   $('#infoBtn').innerHTML = icon('info'); $('#infoBtn').onclick = () => openTajweed();

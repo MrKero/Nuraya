@@ -1,8 +1,8 @@
 /* Nuraya – Service Worker: alles offline verfügbar */
-const VERSION = 'nur-v2.0.0';
+const VERSION = 'nur-v2.1.0';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/mosques.js', 'js/tajtag.js', 'js/tajweed.js', 'js/settings.js',
+  'js/i18n.js', 'js/cities.js', 'js/core.js', 'js/glasstab.js', 'js/calendar.js', 'js/prayer.js', 'js/tasbih.js', 'js/quran.js', 'js/names.js', 'js/zakat.js', 'js/mosques.js', 'js/tajtag.js', 'js/tajweed.js', 'js/settings.js',
   'lib/adhan.min.js', 'lib/fflate.min.js', 'lib/tz-lookup.js', 'data/cities.json',
   'fonts/amiri-quran.woff2', 'fonts/aref-ruqaa.woff2', 'fonts/reem-kufi.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',

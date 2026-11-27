@@ -1,36 +1,40 @@
 /* Moscheen in der Nähe – Daten aus OpenStreetMap (Overpass API).
    Abfrage nur auf Knopfdruck; das Ergebnis wird auf dem Gerät gespeichert und ist danach offline lesbar. */
-const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+/* mehrere öffentliche Overpass-Server gleichzeitig fragen – der schnellste gewinnt */
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 let MQ_POS = null; // genauer GPS-Standort nur für diese Sitzung (wird nicht gespeichert)
+let MQ_CTL = null;
 
 function mqQuery(lat, lon, r) {
   const f = `["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${lat.toFixed(4)},${lon.toFixed(4)})`;
-  return `[out:json][timeout:25];(node${f};way${f};relation${f};);out center tags;`;
+  return `[out:json][timeout:20];(node${f};way${f};relation${f};);out center tags qt;`;
+}
+function mqParse(j) {
+  return j.elements.map(e => {
+    const g = e.tags || {}, la = e.lat ?? e.center?.lat, lo = e.lon ?? e.center?.lon;
+    const street = [g['addr:street'], g['addr:housenumber']].filter(Boolean).join(' ');
+    const city = [g['addr:postcode'], g['addr:city']].filter(Boolean).join(' ');
+    return {
+      n: g['name:' + S.lang] || g.name || '', la, lo,
+      a: [street, city].filter(Boolean).join(', '),
+      o: g.operator || g.denomination && g.denomination !== 'sunni' && g.denomination || '',
+      k: g.building === 'mosque' || /moschee|mosque|cami|masjid|mescit|مسجد|جامع/i.test(g.name || '') ? 'mosque' : 'room',
+      w: g.website || g['contact:website'] || '',
+    };
+  }).filter(x => x.la != null);
 }
 async function mqFetch(lat, lon, r) {
-  let last;
-  for (const url of OVERPASS) {
-    try {
-      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 30000);
-      const res = await fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(mqQuery(lat, lon, r)), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
-      clearTimeout(tm);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const j = await res.json();
-      return j.elements.map(e => {
-        const g = e.tags || {}, la = e.lat ?? e.center?.lat, lo = e.lon ?? e.center?.lon;
-        const street = [g['addr:street'], g['addr:housenumber']].filter(Boolean).join(' ');
-        const city = [g['addr:postcode'], g['addr:city']].filter(Boolean).join(' ');
-        return {
-          n: g['name:' + S.lang] || g.name || '', la, lo,
-          a: [street, city].filter(Boolean).join(', '),
-          o: g.operator || g.denomination && g.denomination !== 'sunni' && g.denomination || '',
-          k: g.building === 'mosque' || /moschee|mosque|cami|masjid|mescit|مسجد|جامع/i.test(g.name || '') ? 'mosque' : 'room',
-          w: g.website || g['contact:website'] || '',
-        };
-      }).filter(x => x.la != null);
-    } catch (e) { last = e; }
-  }
-  throw last || new Error('fail');
+  MQ_CTL = new AbortController();
+  const ctl = MQ_CTL, tm = setTimeout(() => ctl.abort(), 25000), q = 'data=' + encodeURIComponent(mqQuery(lat, lon, r));
+  const one = async url => {
+    const res = await fetch(url + '?' + q, { signal: ctl.signal }); // GET: einfache Anfrage ohne CORS-Vorabprüfung
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+    if (!j || !Array.isArray(j.elements) || (j.remark && /runtime error|timed out/i.test(j.remark))) throw new Error('remark');
+    return j;
+  };
+  try { const j = await Promise.any(OVERPASS.map(one)); return mqParse(j); }
+  finally { clearTimeout(tm); ctl.abort(); if (MQ_CTL === ctl) MQ_CTL = null; }
 }
 function mqDist(m, from) { return kmBetween(from, { lat: m.la, lon: m.lo }); }
 function fmtKm(km) { return km < 1 ? fmtNum(Math.round(km * 1000 / 10) * 10) + ' m' : (km < 10 ? km.toFixed(1).replace('.', S.lang === 'de' || S.lang === 'tr' ? ',' : '.') : fmtNum(Math.round(km))) + ' km'; }
@@ -53,7 +57,7 @@ registerSection('prayer', {
 
 function openMosques() {
   const R_OPTS = [2000, 5000, 10000, 25000];
-  let r = (S.mosq && S.mosq.r) || 5000, busy = false;
+  let r = (S.mosq && S.mosq.r) || 5000, busy = false, stopped = false, tick = 0;
   const v = openView(`<div class="v-h"><button class="rbtn" data-back>${icon('back')}</button><h3>${t('mqTitle')}</h3><div style="width:44px"></div></div>
     <div class="v-b" style="padding:0 16px 60px"><div id="mqTop"></div><div id="mqList"></div>
     <p class="tiny" style="margin:18px 6px 0">${t('mqPrivacy')}</p><p class="tiny" style="margin:6px 6px 0">© OpenStreetMap-Mitwirkende (ODbL)</p></div>`, { onClose: () => renderPage('prayer') });
@@ -64,7 +68,7 @@ function openMosques() {
       <div class="row" style="gap:8px;flex-wrap:wrap"><span class="pill">${icon('pin')}<span>${esc(MQ_POS ? t('mqGpsHere') : f.name)}</span></span>
         ${MQ_POS ? '' : `<button class="pill" data-gps>${icon('compass')}<span>${t('mqUseGps')}</span></button>`}</div>
       <div class="seg" style="margin-top:12px">${R_OPTS.map(x => `<button data-r="${x}" class="${x === r ? 'on' : ''}">${x / 1000} km</button>`).join('')}</div>
-      <button class="btn full pri" style="margin-top:12px" data-go ${busy ? 'disabled' : ''}>${busy ? t('mqSearching') : icon('search') + ' ' + t('mqSearch')}</button>
+      ${busy ? `<div class="mq-busy"><span class="mq-spin"></span><span class="grow" id="mqSec">${t('mqSearching')}</span><button class="btn sm" data-stop>${t('cancel')}</button></div>` : `<button class="btn full pri" style="margin-top:12px" data-go>${icon('search')} ${t('mqSearch')}</button>`}
       ${S.mosq && S.mosq.at ? `<div class="tiny" style="margin-top:8px;text-align:center">${t('mqStand', { d: fmtDate(new Date(S.mosq.at), { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + fmtTime(new Date(S.mosq.at)) })}</div>` : ''}</div>`;
     $$('[data-r]', top).forEach(b => b.onclick = () => { r = +b.dataset.r; drawTop(); });
     const g = $('[data-gps]', top); if (g) g.onclick = () => {
@@ -72,7 +76,8 @@ function openMosques() {
       toast(t('locating'));
       navigator.geolocation.getCurrentPosition(p => { MQ_POS = { lat: p.coords.latitude, lon: p.coords.longitude, name: t('mqGpsHere') }; drawTop(); drawList(); search(); }, () => toast(t('gpsFail')), { enableHighAccuracy: true, timeout: 15000, maximumAge: 120000 });
     };
-    $('[data-go]', top).onclick = search;
+    const go = $('[data-go]', top); if (go) go.onclick = search;
+    const st = $('[data-stop]', top); if (st) st.onclick = () => { stopped = true; MQ_CTL && MQ_CTL.abort(); };
   };
   const drawList = () => {
     const c = S.mosq, f = mqFrom();
@@ -96,15 +101,17 @@ function openMosques() {
   async function search() {
     if (busy) return;
     if (!navigator.onLine) return toast(t('offline'));
-    busy = true; drawTop();
+    busy = true; stopped = false; drawTop();
+    const t0 = Date.now();
+    tick = setInterval(() => { const el = document.getElementById('mqSec'); if (el) { const s = Math.round((Date.now() - t0) / 1000); el.textContent = t('mqSearching') + ' ' + s + ' s' + (s >= 8 ? ' · ' + t('mqSlow') : ''); } }, 1000);
     const f = mqFrom();
     try {
       let res = await mqFetch(f.lat, f.lon, r);
       // nichts gefunden? Einmal automatisch weiter suchen
-      if (!res.length && r < 25000) { r = 25000; res = await mqFetch(f.lat, f.lon, r); }
+      if (!res.length && r < 25000 && !stopped) { r = 25000; drawTop(); res = await mqFetch(f.lat, f.lon, r); }
       S.mosq = { at: Date.now(), r, list: res.slice(0, 150) }; save();
-    } catch (e) { toast(t('mqFail'), 4000); }
-    busy = false; drawTop(); drawList();
+    } catch (e) { if (!stopped) toast(t('mqFail'), 4000); }
+    clearInterval(tick); busy = false; drawTop(); drawList();
   }
   drawTop(); drawList();
   $('[data-back]', v.el).onclick = v.close;
