@@ -365,7 +365,7 @@ details.help:last-child{border-bottom:0}
 details.help summary{list-style:none;padding:14px;font-weight:600;display:flex;align-items:center;gap:10px}
 details.help summary::-webkit-details-marker{display:none}
 details.help summary::after{content:"";margin-inline-start:auto;width:9px;height:9px;border-right:2px solid var(--fg2);border-bottom:2px solid var(--fg2);transform:rotate(45deg);transition:.2s}
-details.help[open] summary::after{transform:rotate(-135deg)}
+details.help[open] > summary::after{transform:rotate(-135deg)}
 details.help div{padding:0 14px 14px;color:var(--fg2);font-size:14.5px;line-height:1.5}
 .adj{display:flex;align-items:center;gap:6px}
 .adj button{width:34px;height:34px;border-radius:10px;background:var(--card2);font-size:18px;font-weight:700}
@@ -503,3 +503,9 @@ html[data-theme="babyblau"] .gt-pill,html[data-theme="weiss"] .gt-pill,html[data
 .mq-spin{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
 .mq-err{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(224,90,90,.12);text-align:start}
 .mq-err code{font-size:11px;opacity:.8;overflow-wrap:anywhere}
+details.help-all > summary{font-size:16px}
+details.help-all > summary svg{width:22px;height:22px;color:var(--accent);flex:none}
+details.help-all > summary small{display:block;font-weight:500;font-size:12.5px;color:var(--fg2);margin-top:2px}
+details.help-all > .help-in{padding:0;border-top:1px solid var(--line);margin:0 0 0 14px;color:var(--fg);font-size:inherit;line-height:normal}
+details.help-all > .help-in details.help summary{font-size:15px;padding:12px 14px 12px 0}
+details.help-all > .help-in details.help div{padding:0 14px 14px 0}

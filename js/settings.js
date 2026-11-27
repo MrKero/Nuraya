@@ -33,11 +33,13 @@ function openSettings() {
   refreshSettings();
 }
 const swRow = (k, label, sub, on) => `<div class="set-row"><span class="grow"><b>${label}</b>${sub ? `<span>${sub}</span>` : ''}</span><label class="switch"><input type="checkbox" data-sw="${k}" ${on ? 'checked' : ''}><i></i></label></div>`;
+let HELP_OPEN = false;
 function settingsHtml() {
-  const helps = ['hStart', 'hPrayer', 'hTasbih', 'hQuran', 'hCalendar', 'hEdit', 'hOffline', 'hInstall'];
+  const helps = ['hStart', 'hPrayer', 'hOverview', 'hTabbar', 'hQuran', 'hTajweed', 'hAudio', 'hTasbih', 'hCalendar', 'hQibla', 'hMosques', 'hNames', 'hZakat', 'hEdit', 'hOffline', 'hUpdate'];
   const dlInfo = S.dl && S.dl.days ? (() => { const ks = Object.keys(S.dl.days).sort(); return ks.length ? t('dlRange', { a: fmtDate(fromKey(ks[0]), { day: 'numeric', month: 'short' }), b: fmtDate(fromKey(ks[ks.length - 1]), { day: 'numeric', month: 'short', year: 'numeric' }), n: esc(S.dl.name) }) : ''; })() : t('dlNoData');
   return `
-  <div class="set-sec"><h4>${t('sHelp')}</h4><div class="set-box">${helps.map(h => `<details class="help"><summary>${t(h)}</summary><div>${t(h + 'T')}</div></details>`).join('')}</div></div>
+  <div class="set-sec"><h4>${t('sHelp')}</h4><div class="set-box"><details class="help help-all" id="helpAll" ${HELP_OPEN ? 'open' : ''}><summary>${icon('book')}<span class="grow">${t('helpAll')}<small>${t('helpAllSub', { n: helps.length })}</small></span></summary>
+    <div class="help-in">${helps.map(h => `<details class="help"><summary>${t(h)}</summary><div>${t(h + 'T')}</div></details>`).join('')}</div></details></div></div>
 
   <div class="set-sec"><h4>${t('sProfile')}</h4><div class="set-box">
     <div class="set-row"><span class="grow"><b>${t('yourName')}</b><span>${t('yourNameSub')}</span></span><input type="text" id="sName" value="${esc(S.name)}" placeholder="${t('namePh')}" maxlength="24" autocomplete="given-name"></div></div></div>
@@ -126,6 +128,7 @@ function settingsHtml() {
 const EZ = 'https://ezanvakti.emushaf.net';
 async function ezGet(path) { const r = await fetch(EZ + path, { mode: 'cors' }); if (!r.ok) throw new Error(r.status); return r.json(); }
 function bindSettings(b) {
+  const ha = $('#helpAll', b); if (ha) ha.ontoggle = () => { HELP_OPEN = ha.open; };
   const rerender = (all = true) => { save(); applyTheme(); if (all) renderAll(); refreshSettings && refreshSettings(); };
   $('#sName', b).onchange = e => { S.name = e.target.value.trim(); rerender(); };
   $$('[data-lang]', b).forEach(x => x.onclick = () => { S.lang = x.dataset.lang; setSheet.el.querySelector('.sh-h h3').textContent = t('settings'); rerender(); });
