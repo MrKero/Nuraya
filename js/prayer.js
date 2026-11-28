@@ -13,7 +13,7 @@ const PEMOJI = { fajr: '✨', sunrise: '🌅', dhuhr: '☀️', asr: '🌤️', 
 const pname = k => (PNAMES[S.pnames] || PNAMES.tr)[k];
 
 const METHODS = {
-  diyanet_eu: { label: 'Diyanet (Europa)', make: () => { const p = adhan.CalculationMethod.Other(); p.fajrAngle = 18; p.ishaAngle = 17; p.methodAdjustments = { fajr: 0, sunrise: -3, dhuhr: 0, asr: 1, maghrib: 3, isha: -3 }; return p; } },
+  diyanet_eu: { label: 'Diyanet (automatisch)', make: () => { const p = adhan.CalculationMethod.Other(); p.fajrAngle = 18; p.ishaAngle = 17; p.methodAdjustments = { fajr: 0, sunrise: -3, dhuhr: 0, asr: 1, maghrib: 3, isha: -3 }; return p; } },
   turkey: { label: 'Diyanet (Türkiye)', make: () => adhan.CalculationMethod.Turkey() },
   mwl: { label: 'Muslim World League', make: () => adhan.CalculationMethod.MuslimWorldLeague() },
   isna: { label: 'ISNA (Nordamerika)', make: () => adhan.CalculationMethod.NorthAmerica() },
@@ -44,10 +44,15 @@ function kmBetween(a, b) {
   const h = Math.sin(dφ / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dλ / 2) ** 2;
   return 12742 * Math.asin(Math.sqrt(h));
 }
+/* „Diyanet (automatisch)“: in Europa die Diyanet-Europa-Tabellen, sonst (Türkei, Ägypten, weltweit) die Diyanet-Türkei-Berechnung –
+   genau so veröffentlicht Diyanet seine Zeiten (geprüft mit Kairo: Abweichung ≤ 1 Minute). */
+function isEuropeLoc(L) { const tz = L.tz || ''; return tz.startsWith('Europe/') && tz !== 'Europe/Istanbul' && L.cc !== 'TR' && L.cc !== 'CY'; }
+function effMethod(L) { const m = METHODS[S.method] ? S.method : 'diyanet_eu'; return m === 'diyanet_eu' && !isEuropeLoc(L) ? 'turkey' : m; }
+function methodLabel(L) { return S.method === 'diyanet_eu' || !METHODS[S.method] ? (isEuropeLoc(L) ? 'Diyanet (Europa)' : 'Diyanet (' + t('worldwide') + ')') : METHODS[S.method].label; }
 function calcTimes(key, L) {
   const [y, m, d] = key.split('-').map(Number);
   const c = new adhan.Coordinates(L.lat, L.lon);
-  const p = (METHODS[S.method] || METHODS.diyanet_eu).make();
+  const p = METHODS[effMethod(L)].make();
   p.madhab = S.asr === 'hanafi' ? adhan.Madhab.Hanafi : adhan.Madhab.Shafi;
   p.highLatitudeRule = adhan.HighLatitudeRule.recommended(c);
   p.adjustments = { ...S.adj };
@@ -207,7 +212,7 @@ registerSection('prayer', {
       return `<div class="pr ${isNow ? 'now' : ''} ${past ? 'past' : ''}">${chkHtml(prayerDay, k, T[k] > now)}
         <span class="pn">${pname(k)} <em>${PEMOJI[k]}</em></span>${isNow ? `<span class="badge">${t('now')}</span>` : ''}<span class="pt">${fmtTime(T[k], T.tz)}</span></div>`;
     }).join('');
-    const src = T.src === 'dl' ? t('srcDl') : (METHODS[S.method] || METHODS.diyanet_eu).label;
+    const src = T.src === 'dl' ? t('srcDl') : methodLabel(locFor(prayerDay || prayerDayKey()));
     return `<div class="sec-h"><div><h2>${prayerDay === tk ? t('today') : fmtDate(sel, { weekday: 'long' })}, ${fmtDate(sel, { day: 'numeric', month: 'long' })}</h2>
         <div class="muted small" style="margin-top:3px">${hijriStr(sel)} ${t('ah')}</div></div>${prayerDay !== prayerDayKey() ? `<button class="pill today-btn" data-today>${icon('cal')}<span>${t('today')}</span></button>` : ''}</div>
       <div class="dstrip" id="dstrip">${strip}</div>
@@ -352,6 +357,7 @@ function prayerNowCard() {
 /* ---------------- Standort, gespeicherte Orte, Reisen ---------------- */
 let CITYDB = null;
 async function cityDB() { if (!CITYDB) { try { CITYDB = await (await fetch('data/cities.json')).json(); } catch (e) { CITYDB = CITIES.map(c => [c[0], '', c[2], c[3]]); } } return CITYDB; }
+const CITY_ALIAS = { kairo: 'Cairo', kahire: 'Cairo', mekka: 'Mecca', mekke: 'Mecca', medine: 'Medina', münchen: 'Munich', muenchen: 'Munich', köln: 'Köln', cologne: 'Köln', nürnberg: 'Nürnberg', nuremberg: 'Nürnberg', wien: 'Vienna', viyana: 'Vienna', moskau: 'Moscow', moskova: 'Moscow', rom: 'Rome', roma: 'Rome', brüssel: 'Brussels', brüksel: 'Brussels', damaskus: 'Damascus', şam: 'Damascus', bagdad: 'Baghdad', bağdat: 'Baghdad', teheran: 'Tehran', tahran: 'Tehran', kudüs: 'Jerusalem', mailand: 'Milan', milano: 'Milan', venedig: 'Venice', florenz: 'Florence', neapel: 'Naples', genf: 'Geneva', cenevre: 'Geneva', lissabon: 'Lisbon', athen: 'Athens', atina: 'Athens', warschau: 'Warsaw', varşova: 'Warsaw', prag: 'Prague', belgrad: 'Belgrade', bukarest: 'Bucharest', bükreş: 'Bucharest', kopenhagen: 'Copenhagen', kopenhag: 'Copenhagen', londra: 'London', paris: 'Paris', iskenderiye: 'Alexandria', alexandrien: 'Alexandria', gize: 'Giza', amman: 'Amman', beirut: 'Beirut', beyrut: 'Beirut', marrakesch: 'Marrakesh', marakeş: 'Marrakesh', tunis: 'Tunis', algier: 'Algiers', cezayir: 'Algiers', dubai: 'Dubai', abudhabi: 'Abu Dhabi', doha: 'Doha', riad: 'Riyadh', riyad: 'Riyadh', dschidda: 'Jeddah', cidde: 'Jeddah', sarajewo: 'Sarajevo', saraybosna: 'Sarajevo', üsküp: 'Skopje', skopje: 'Skopje', tiflis: 'Tbilisi', baku: 'Baku', bakü: 'Baku', taschkent: 'Tashkent', taşkent: 'Tashkent', buchara: 'Bukhara', buhara: 'Bukhara', samarkand: 'Samarkand', semerkant: 'Samarkand' };
 let regionNames = null;
 function countryName(cc) {
   if (!cc) return '';
@@ -364,7 +370,17 @@ async function nearestCity(lat, lon) {
   for (const c of db) { const d = Math.abs(c[2] - lat) + Math.abs(c[3] - lon) * Math.cos(lat * Math.PI / 180); if (d < bd) { bd = d; best = c; } }
   return best && kmBetween({ lat, lon }, { lat: best[2], lon: best[3] }) < 25 ? best : null;
 }
+const activeTrip = (k = todayKey()) => (S.trips || []).find(x => x.from <= k && k <= x.to);
+/* Reise ab heute beenden (beginnt sie heute, wird sie ganz entfernt) */
+function endTrip(tr) {
+  const td = todayKey();
+  if (tr.from >= td) S.trips = S.trips.filter(x => x !== tr); else tr.to = keyOf(addDays(fromKey(td), -1));
+  clearTimes(); save(); renderAll();
+}
 function setHome(P, quiet) {
+  // Eine laufende Reise hat Vorrang vor dem Standort – sonst würde sich beim Wechseln scheinbar nichts ändern
+  const tr = activeTrip();
+  if (tr && !quiet) { if (confirm(t('tripActiveAsk', { n: tr.place.name, d: fmtDate(fromKey(tr.to), { day: 'numeric', month: 'long' }) }))) endTrip(tr); }
   S.loc = P; clearTimes(); save(); renderAll();
   if (!quiet) toast(t('locSet', { n: P.name }));
 }
@@ -391,7 +407,8 @@ function openLocation() {
   const draw = () => {
     const trips = (S.trips || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
     sh.body.innerHTML = `
-    <div class="card row" style="margin-bottom:12px">${icon('pin')}<div class="grow"><div class="muted small">${t('currentLoc')}</div><b style="font-size:17px">${placeLabel(S.loc)}</b><div class="tiny">${S.loc.tz} · ${S.loc.lat}, ${S.loc.lon}</div></div></div>
+    ${(() => { const tr = activeTrip(); return tr ? `<div class="card row trip-now" style="margin-bottom:10px">${icon('cal')}<div class="grow"><div class="muted small">${t('tripNow')}</div><b style="font-size:17px">${placeLabel(tr.place)}</b><div class="tiny">${t('tripUntil', { d: fmtDate(fromKey(tr.to), { day: 'numeric', month: 'long' }) })}</div></div><button class="btn sm" data-endtrip>${t('tripEnd')}</button></div>` : ''; })()}
+    <div class="card row" style="margin-bottom:12px">${icon('pin')}<div class="grow"><div class="muted small">${activeTrip() ? t('homeLoc') : t('currentLoc')}</div><b style="font-size:17px">${placeLabel(S.loc)}</b><div class="tiny">${S.loc.tz} · ${S.loc.lat}, ${S.loc.lon}</div></div></div>
     <button class="btn pri full" data-gps>${icon('gps')} ${t('useGps')}</button>
     <div class="set-box" style="margin:10px 0 6px"><div class="set-row"><span class="grow"><b>${t('autoLoc')}</b><span>${t('autoLocSub')}</span></span><label class="switch"><input type="checkbox" data-autoloc ${S.autoLoc ? 'checked' : ''}><i></i></label></div></div>
     <p class="tiny" style="margin:0 4px 14px">${t('gpsNote')}</p>
@@ -410,7 +427,12 @@ function openLocation() {
     const L = $('#cityL', sh.body); if (!L) return;
     q = q.trim().toLocaleLowerCase(); if (q.length < 2) { L.innerHTML = ''; return; }
     const db = await cityDB(), norm = x => x.toLocaleLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), nq = norm(q);
-    const hits = []; for (const c of db) { const n = norm(c[0]); if (n.startsWith(nq) || (nq.length > 3 && n.includes(nq))) { hits.push(c); if (hits.length >= 40) break; } }
+    // deutsche/türkische Namen großer Städte (die Datenbank kennt nur einen Namen)
+    const al = Object.entries(CITY_ALIAS).filter(([k]) => k.startsWith(nq) && nq.length >= 3).map(([, v]) => norm(v));
+    const hits = [];
+    for (const c of db) { const n = norm(c[0]); if (al.includes(n)) hits.push(c); }
+    hits.sort((a, b) => (b[4] || 0) - (a[4] || 0));
+    for (const c of db) { const n = norm(c[0]); if (!hits.includes(c) && (n.startsWith(nq) || (nq.length > 3 && n.includes(nq)))) { hits.push(c); if (hits.length >= 40) break; } }
     L.innerHTML = hits.map(c => `<button class="city" style="width:100%" data-c='${esc(JSON.stringify(c))}'><b>${esc(c[0])}</b><span>${esc(countryName(c[1]))}</span></button>`).join('') || `<div class="empty">${t('noResults')}</div>`;
   };
   // Aktion für einen gewählten Ort: als Standort, speichern oder Reise planen
@@ -439,6 +461,7 @@ function openLocation() {
       const u = e.target.closest('[data-usep]'); if (u) { setHome(S.places[+u.dataset.usep]); draw(); }
       const tp = e.target.closest('[data-tripp]'); if (tp) planTrip(S.places[+tp.dataset.tripp], draw);
       const dp = e.target.closest('[data-delp]'); if (dp) { S.places.splice(+dp.dataset.delp, 1); save(); draw(); }
+      if (e.target.closest('[data-endtrip]')) { const tr = activeTrip(); if (tr) { endTrip(tr); toast(t('tripEnded')); draw(); } return; }
       const dt = e.target.closest('[data-delt]'); if (dt) { S.trips = S.trips.filter(x => String(x.id) !== dt.dataset.delt); clearTimes(); save(); renderAll(); draw(); }
     };
     $('[data-man]', b).onclick = () => {
@@ -460,7 +483,7 @@ function planTrip(P, done) {
     if (!f || !to || to < f) return toast(t('badDates'));
     (S.trips ||= []).push({ id: Date.now(), place: P, from: f, to });
     if (!S.places.some(q => q.name === P.name && q.cc === P.cc)) S.places.push(P);
-    clearTimes(); save(); sh.close(); renderAll(); toast(t('tripSaved')); done && done();
+    clearTimes(); save(); sh.close(); renderAll(); toast(f > todayKey() ? t('tripFuture', { n: P.name, d: fmtDate(fromKey(f), { day: 'numeric', month: 'long' }) }) : t('tripSaved'), 4000); done && done();
   };
 }
 
